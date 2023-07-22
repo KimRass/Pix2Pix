@@ -111,7 +111,7 @@ def get_receptive_field(out_channels, kernel_size, stride):
     return (out_channels - 1) * stride + kernel_size
 
 
-class Discriminator(nn.Module):
+class Discriminator(nn.Module): # "$70 \times 70$ 'PatchhGAN'"
     def __init__(self, in_channels):
         super().__init__()
 
@@ -151,7 +151,7 @@ if __name__ == "__main__":
     rf = get_receptive_field(out_channels=rf, kernel_size=4, stride=2)
     rf = get_receptive_field(out_channels=rf, kernel_size=4, stride=2)
     rf = get_receptive_field(out_channels=rf, kernel_size=4, stride=2)
-    print(rf)
+    print(rf) # `70`
 
     disc = Discriminator(in_channels=6)
     x = y = torch.randn(4, 3, 256, 256)

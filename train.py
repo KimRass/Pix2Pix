@@ -1,6 +1,5 @@
 import torch
 from torch.optim import Adam
-import torchvision.transforms.functional as TF
 from pathlib import Path
 
 from model import Generator, Discriminator
@@ -33,6 +32,7 @@ train_dl = get_facades_dataloader(
 )
 
 crit = Pix2PixLoss()
+LAMB = 100
 # "Trained for $200$ epochs."
 N_EPOCHS = 200
 losses = list()
@@ -47,29 +47,35 @@ for epoch in range(1, N_EPOCHS + 1):
         fake_photo = gen(label)
         real_pred = disc(label, real_photo)
         fake_pred = disc(label, fake_photo)
-        loss = crit(real_photo=real_photo, fake_photo=fake_photo, real_pred=real_pred, fake_pred=fake_pred)
+        # loss = crit(real_photo=real_photo, fake_photo=fake_photo, real_pred=real_pred, fake_pred=fake_pred)
+        cgan_loss, l1_loss = crit(
+            real_photo=real_photo, fake_photo=fake_photo, real_pred=real_pred, fake_pred=fake_pred
+        )
+        loss = cgan_loss + LAMB * l1_loss
         loss.backward()
 
         disc_optim.step()
         gen_optim.step()
 
         if batch == len(train_dl):
-            print(f"""[{epoch}/{str(N_EPOCHS)}][{batch}/{len(train_dl)}] loss: {loss.item(): .4f}""")
+            # print(f"""[{epoch}/{str(N_EPOCHS)}][{batch}/{len(train_dl)}] loss: {loss.item(): .4f}""")
+            print(f"""[{epoch}/{str(N_EPOCHS)}][{batch}/{len(train_dl)}] CGAN Loss: {cgan_loss.item(): .4f} | L1 Loss: {l1_loss.item(): .4f}""")
 
-    label = label.detach().cpu()
-    real_photo = real_photo.detach().cpu()
-    fake_photo = fake_photo.detach().cpu()
+    if epoch % 2 == 0:
+        label = label.detach().cpu()
+        real_photo = real_photo.detach().cpu()
+        fake_photo = fake_photo.detach().cpu()
 
-    label = denormalize(label, mean=(0.222, 0.299, 0.745), std=(0.346, 0.286, 0.336))
-    real_photo = denormalize(real_photo, mean=(0.478, 0.453, 0.417), std=(0.243, 0.235, 0.236))
-    fake_photo = denormalize(fake_photo, mean=(0.478, 0.453, 0.417), std=(0.243, 0.235, 0.236))
+        label = denormalize(label, mean=(0.222, 0.299, 0.745), std=(0.346, 0.286, 0.336))
+        real_photo = denormalize(real_photo, mean=(0.478, 0.453, 0.417), std=(0.243, 0.235, 0.236))
+        fake_photo = denormalize(fake_photo, mean=(0.478, 0.453, 0.417), std=(0.243, 0.235, 0.236))
 
-    image = torch.cat([label, real_photo, fake_photo], dim=0)
-    grid = batched_image_to_grid(image, n_cols=3)
-    save_image(grid, path=f"""{Path(__file__).parent}/examples/epoch_{epoch}.jpg""")
+        image = torch.cat([label, real_photo, fake_photo], dim=0)
+        grid = batched_image_to_grid(image, n_cols=3)
+        save_image(grid, path=f"""{Path(__file__).parent}/generated_images/epoch_{epoch}.jpg""")
 
     if epoch % 10 == 0:
         save_parameters(
             model=gen,
-            save_path=f"""{Path(__file__).parent}/parameters/epoch_{epoch}.pth"""
+            save_path=f"""{Path(__file__).parent}/pretrained/epoch_{epoch}.pth"""
         )

@@ -26,8 +26,9 @@ class Pix2PixLoss(nn.Module):
 
         # "$\mathcal{L}_{L1}(G) = \mathbb{E}_{x, y, z}[\lVert y - G(x, z) \rVert_{1}]$"
         l1_loss = self.l1_crit(fake_photo, real_photo)
-        loss = cgan_loss + self.lamb * l1_loss
-        return loss
+        return cgan_loss, l1_loss
+        # loss = cgan_loss + self.lamb * l1_loss
+        # return loss
 
 
 if __name__ == "__main__":
