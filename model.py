@@ -103,7 +103,7 @@ class Generator(nn.Module):
         x = self.layer14(torch.cat([x3, x], dim=1)) # `(b, 128, 64, 64)`
         x = self.layer15(torch.cat([x2, x], dim=1)) # `(b, 64, 128, 128)`
         x = self.layer16(torch.cat([x1, x], dim=1)) # `(b, 3, 256, 256)`
-        x = F.tanh(x)
+        x = torch.tanh(x)
         return x
 
 
@@ -134,7 +134,7 @@ class Discriminator(nn.Module):
         x = self.layer3(x) # `(b, 256, 32, 32)`
         x = self.layer4(x) # `(b, 512, 31, 31)`
         x = self.layer5(x) # `(b, 1, 31, 31)`
-        x = F.sigmoid(x)
+        x = torch.sigmoid(x)
         # "We run the discriminator convolutionally across the image, averaging all responses to provide
         # the ultimate output of $D$."
         x = x.mean(dim=(2, 3))

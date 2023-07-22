@@ -56,9 +56,9 @@ for epoch in range(1, N_EPOCHS + 1):
         if batch == len(train_dl):
             print(f"""[{epoch}/{str(N_EPOCHS)}][{batch}/{len(train_dl)}] loss: {loss.item(): .4f}""")
 
-    fake_image = fake_image.detach().cpu()
-    fake_image = denormalize(fake_image, mean=(0.478, 0.453, 0.417), std=(0.243, 0.235, 0.236))
-    fake_img = TF.to_pil_image(fake_image[0]).show()
+    fake_photo = fake_photo.detach().cpu()
+    fake_photo = denormalize(fake_photo, mean=(0.478, 0.453, 0.417), std=(0.243, 0.235, 0.236))
+    fake_img = TF.to_pil_image(fake_photo[0]).show()
     save_image(fake_img, path=f"""{Path(__file__).parent}/examples/epoch_{epoch}.jpg""")
 
     save_parameters(
