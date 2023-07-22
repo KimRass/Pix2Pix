@@ -7,7 +7,7 @@ from model import Generator, Discriminator
 from loss import Pix2PixLoss
 from torch_utils import get_device, denormalize, save_parameters
 from facades import get_facades_dataloader
-from image_utils import save_image
+from image_utils import save_image, batched_image_to_grid
 
 DEVICE = get_device()
 gen = Generator(in_channels=3, out_channels=3).to(DEVICE)
@@ -56,12 +56,20 @@ for epoch in range(1, N_EPOCHS + 1):
         if batch == len(train_dl):
             print(f"""[{epoch}/{str(N_EPOCHS)}][{batch}/{len(train_dl)}] loss: {loss.item(): .4f}""")
 
+    label = label.detach().cpu()
+    real_photo = real_photo.detach().cpu()
     fake_photo = fake_photo.detach().cpu()
-    fake_photo = denormalize(fake_photo, mean=(0.478, 0.453, 0.417), std=(0.243, 0.235, 0.236))
-    fake_img = TF.to_pil_image(fake_photo[0])
-    save_image(fake_img, path=f"""{Path(__file__).parent}/examples/epoch_{epoch}.jpg""")
 
-    save_parameters(
-        model=gen,
-        save_path=f"""{Path(__file__).parent}/parameters/epoch_{epoch}.pth"""
-    )
+    label = denormalize(label, mean=(0.222, 0.299, 0.745), std=(0.346, 0.286, 0.336))
+    real_photo = denormalize(real_photo, mean=(0.478, 0.453, 0.417), std=(0.243, 0.235, 0.236))
+    fake_photo = denormalize(fake_photo, mean=(0.478, 0.453, 0.417), std=(0.243, 0.235, 0.236))
+
+    image = torch.cat([label, real_photo, fake_photo], dim=0)
+    grid = batched_image_to_grid(image, n_cols=3)
+    save_image(grid, path=f"""{Path(__file__).parent}/examples/epoch_{epoch}.jpg""")
+
+    if epoch % 10 == 0:
+        save_parameters(
+            model=gen,
+            save_path=f"""{Path(__file__).parent}/parameters/epoch_{epoch}.pth"""
+        )
