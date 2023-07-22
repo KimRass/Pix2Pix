@@ -2,6 +2,7 @@
 
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 
 from model import Generator, Discriminator
 
@@ -13,11 +14,18 @@ class Pix2PixLoss(nn.Module):
         self.lamb = lamb
 
         self.cgan_crit = nn.BCELoss()
+        # "Using L1 distance rather than L2 as L1 encourages less blurring."
         self.l1_crit = nn.L1Loss()
 
-    def forward(self, gen_output, disc_output, y):
-        cgan_loss = self.cgan_crit(torch.ones_like(disc_output), disc_output)
-        l1_loss = self.l1_crit(gen_output, y)
+    def forward(self, real_photo, fake_photo, real_pred, fake_pred):
+        # "$\mathbb{E}_{x, y}[\log D(x, y)]$"
+        real_loss = self.cgan_crit(real_pred, torch.ones_like(real_pred, device=real_pred.device))
+        # "$\mathbb{E}_{x, z}[\log(1 − D(x, G(x, z)))]$"
+        fake_loss = self.cgan_crit(fake_pred, torch.zeros_like(fake_pred, device=real_pred.device))
+        cgan_loss = real_loss + fake_loss # "$\mathcal{L}_{cGAN}(G, D)$"
+
+        # "$\mathcal{L}_{L1}(G) = \mathbb{E}_{x, y, z}[\lVert y - G(x, z) \rVert_{1}]$"
+        l1_loss = self.l1_crit(fake_photo, real_photo)
         loss = cgan_loss + self.lamb * l1_loss
         return loss
 
