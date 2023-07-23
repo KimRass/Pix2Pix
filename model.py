@@ -6,7 +6,6 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-# Weights were initialized from a Gaussian distribution with mean 0 and standard deviation 0.02.
 
 # Let 'Ck' denote a Convolution-norm-ReLU layer with $k$ filters. 'CDk' denotes a
 # Convolution-normDropout-ReLUlayer with a dropout rate of 50%. All convolutions are $4 \times 4$
@@ -37,7 +36,6 @@ class ConvBlock(nn.Module):
             # of the training batch. This approach to batch normalization, when the batch size is set to $1$,
             # has been termed 'instance normalization' and has been demonstrated to be effective
             # at image generation tasks."
-            # self.norm_ = nn.BatchNorm2d(out_channels, track_running_stats=False)
             self.norm = nn.InstanceNorm2d(out_channels, track_running_stats=False)
         if drop:
             self.dropout = nn.Dropout(0.5)
@@ -53,6 +51,13 @@ class ConvBlock(nn.Module):
         else:
             x = torch.relu(x)
         return x
+
+
+# "Weights were initialized from a Gaussian distribution with mean $0$ and standard deviation $0.02$."
+def _init_weights(model):
+    for m in model.modules():
+        if isinstance(m, (nn.Conv2d, nn.ConvTranspose2d, nn.InstanceNorm2d)):
+            m.weight.data.normal_(0, 0.02)
 
 
 class Generator(nn.Module):
@@ -84,6 +89,8 @@ class Generator(nn.Module):
         # "After the last layer in the decoder, a convolution is applied to map to the number of output channels
         # ($3$ in general, except in colorization, where it is $2$), followed by a $Tanh$ function."
         self.layer16 = nn.ConvTranspose2d(128, out_channels, kernel_size=4, stride=2, padding=1)
+
+        _init_weights(self)
 
     def forward(self, x):
         x1 = self.layer1(x) # `(b, 64, 128, 128)`
@@ -125,6 +132,8 @@ class Discriminator(nn.Module): # "$70 \times 70$ 'PatchhGAN'"
         # "After the last layer, a convolution is applied to map to a 1-dimensional output,
         # followed by a Sigmoid function."
         self.layer5 = nn.Conv2d(512, 1, kernel_size=1)
+
+        _init_weights(self)
 
     def forward(self, x, y):
         x = torch.cat([x, y], dim=1)
