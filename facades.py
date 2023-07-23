@@ -2,7 +2,7 @@
     # https://github.com/Seonghoon-Yu/AI_Paper_Review/blob/master/GAN/pix2pix(2016).ipynb
     # https://discuss.pytorch.org/t/how-to-apply-same-transform-on-a-pair-of-picture/14914
 
-# random jitter and mirroring. Data were split into train and test randomly.
+# "Data were split into train and test randomly."
 
 from torch.utils.data import Dataset, DataLoader
 import torchvision.transforms as T
@@ -53,7 +53,7 @@ class FacadesDataset(Dataset):
             "/archive/trainB/", "/archive/trainA/"
         ).replace("_B.jpg", "_A.jpg")
 
-        label = Image.open(label_path)
+        label = Image.open(label_path).convert("RGB")
         photo = Image.open(photo_path).convert("RGB")
         if self.split == "train":
             label, photo = self.transform(label, photo)
