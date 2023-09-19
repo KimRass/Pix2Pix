@@ -58,7 +58,6 @@ class ConvBlock(nn.Module):
 def _init_weights(model):
     for m in model.modules():
         if isinstance(m, (nn.Conv2d, nn.ConvTranspose2d, nn.InstanceNorm2d)):
-            print(m)
             m.weight.data.normal_(0, 0.02)
 
 
