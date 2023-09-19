@@ -73,6 +73,7 @@ if __name__ == "__main__":
 
     disc_accum_loss = 0
     gen_accum_loss = 0
+    l1_accum_loss = 0
     for epoch in range(1, args.n_epochs + 1):
         for step, (label, real_image) in enumerate(train_dl, start=1):
             label = label.to(DEVICE)
@@ -111,14 +112,17 @@ if __name__ == "__main__":
 
             disc_accum_loss += disc_loss.item()
             gen_accum_loss += gen_loss.item()
+            l1_accum_loss += l1_loss.item()
 
             if step == len(train_dl):
                 print(f"[ {epoch}/{str(args.n_epochs)} ][ {step}/{len(train_dl)} ]", end="")
                 print(f"[ D loss: {disc_accum_loss / len(train_dl): .4f} ]", end="")
-                print(f"[ G loss: {gen_accum_loss / len(train_dl): .4f} ]")
+                print(f"[ G loss: {gen_accum_loss / len(train_dl): .4f} ]", end="")
+                print(f"[ L1 loss: {l1_accum_loss / len(train_dl): .4f} ]", end="")
 
                 disc_accum_loss = 0
                 gen_accum_loss = 0
+                l1_accum_loss = 0
 
         if epoch % config.N_GEN_EPOCHS == 0:
             label = label.detach().cpu()
