@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+from torch.utils.data import DataLoader
 from torch.optim import Adam
 from pathlib import Path
 import argparse
@@ -8,7 +9,7 @@ import config
 from model import Generator, Discriminator
 from loss import Pix2PixLoss
 from torch_utils import get_device, denormalize, freeze_model, unfreeze_model
-from facades import get_facades_dataloader
+from facades import FacadesDataset
 from image_utils import save_image, batched_image_to_grid
 
 
@@ -47,11 +48,21 @@ if __name__ == "__main__":
     disc_optim = Adam(params=disc.parameters(), lr=config.LR, betas=(config.BETA1, config.BETA2))
     gen_optim = Adam(params=gen.parameters(), lr=config.LR, betas=(config.BETA1, config.BETA2))
 
-    train_dl = get_facades_dataloader(
+    train_ds = FacadesDataset(
         data_dir=args.data_dir,
-        batch_size=args.batch_size,
-        n_workers=args.n_workers,
+        label_mean=config.FACADES_LABEL_MEAN,
+        label_std=config.FACADES_LABEL_STD,
+        photo_mean=config.FACADES_PHOTO_MEAN,
+        photo_std=config.FACADES_PHOTO_STD,
         split="train",
+    )
+    train_dl = DataLoader(
+        train_ds,
+        batch_size=args.batch_size,
+        shuffle=True,
+        n_workers=args.n_workers,
+        pin_memory=True,
+        drop_last=True,
     )
 
     # crit = Pix2PixLoss()

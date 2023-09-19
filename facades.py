@@ -4,7 +4,7 @@
 
 # "Data were split into train and test randomly."
 
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import Dataset
 import torchvision.transforms as T
 import torchvision.transforms.functional as TF
 from PIL import Image
@@ -18,10 +18,14 @@ from torch_utils import get_image_dataset_mean_and_std
 
 
 class FacadesDataset(Dataset):
-    def __init__(self, data_dir, split="train"):
+    def __init__(self, data_dir, label_mean, label_std, photo_mean, photo_std, split="train", ):
         super().__init__()
 
         self.data_dir = data_dir
+        self.label_mean = label_mean
+        self.label_std = label_std
+        self.photo_mean = photo_mean
+        self.photo_std = photo_std
         self.split = split
 
         self.label_paths = list(Path(data_dir).glob(f"""{split}B/*.jpg"""))
@@ -43,10 +47,10 @@ class FacadesDataset(Dataset):
             image = TF.hflip(image)
 
         label = T.ToTensor()(label)
-        label = T.Normalize((0.222, 0.299, 0.745), (0.346, 0.286, 0.336))(label)
+        label = T.Normalize(mean=self.label_mean, std=self.label_std)(label)
 
         image = T.ToTensor()(image)
-        image = T.Normalize((0.478, 0.453, 0.417), (0.243, 0.235, 0.236))(image)
+        image = T.Normalize(mean=self.photo_mean, std=self.photo_std)(image)
         return label, image
 
     def __len__(self):
@@ -62,11 +66,3 @@ class FacadesDataset(Dataset):
         if self.split == "train":
             label, image = self.transform(label, image)
         return label, image
-
-
-def get_facades_dataloader(data_dir, batch_size, n_workers, split):
-    ds = FacadesDataset(data_dir, split=split)
-    dl = DataLoader(
-        ds, batch_size=batch_size, shuffle=True, num_workers=n_workers, pin_memory=True, drop_last=True,
-    )
-    return dl
