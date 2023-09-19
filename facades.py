@@ -18,13 +18,13 @@ from torch_utils import get_image_dataset_mean_and_std
 
 
 class FacadesDataset(Dataset):
-    def __init__(self, archive_dir, split="train"):
+    def __init__(self, data_dir, split="train"):
         super().__init__()
 
-        self.archive_dir = archive_dir
+        self.data_dir = data_dir
         self.split = split
 
-        self.label_paths = list(Path(archive_dir).glob(f"""{split}B/*.jpg"""))
+        self.label_paths = list(Path(data_dir).glob(f"""{split}B/*.jpg"""))
     
     def transform(self, label, photo):
         # "Random jitter was applied by resizing the $256 \times 256$ input images to $286 \times 286$
@@ -49,9 +49,8 @@ class FacadesDataset(Dataset):
 
     def __getitem__(self, idx):
         label_path = self.label_paths[idx]
-        photo_path = str(label_path).replace(
-            "/archive/trainB/", "/archive/trainA/"
-        ).replace("_B.jpg", "_A.jpg")
+        photo_path = str(label_path).replace("/archive/trainB/", "/archive/trainA/")
+        photo_path = photo_path.replace("_B.jpg", "_A.jpg")
 
         label = Image.open(label_path).convert("RGB")
         photo = Image.open(photo_path).convert("RGB")
@@ -63,7 +62,7 @@ class FacadesDataset(Dataset):
         return len(self.label_paths)
 
 
-def get_facades_dataloader(archive_dir, batch_size, n_workers, split):
-    ds = FacadesDataset(archive_dir, split=split)
+def get_facades_dataloader(data_dir, batch_size, n_workers, split):
+    ds = FacadesDataset(data_dir, split=split)
     dl = DataLoader(ds, batch_size=batch_size, shuffle=True, num_workers=n_workers, drop_last=True)
     return dl
