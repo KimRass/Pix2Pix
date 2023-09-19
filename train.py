@@ -105,6 +105,9 @@ if __name__ == "__main__":
                 print(f"[ D loss: {disc_accum_loss / len(train_dl): .4f} ]", end="")
                 print(f"[ G loss: {gen_accum_loss / len(train_dl): .4f} ]")
 
+                disc_accum_loss = 0
+                gen_accum_loss = 0
+
         if epoch % config.N_GEN_EPOCHS == 0:
             label = label.detach().cpu()
             real_image = real_image.detach().cpu()
