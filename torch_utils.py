@@ -13,11 +13,6 @@ def get_device():
     return device
 
 
-def save_parameters(model, save_path):
-    Path(save_path).parent.mkdir(parents=True, exist_ok=True)
-    torch.save(model.state_dict(), str(save_path))
-
-
 def get_image_dataset_mean_and_std(data_dir, ext="jpg"):
     data_dir = Path(data_dir)
 

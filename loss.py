@@ -1,23 +1,22 @@
-# References: https://deep-learning-study.tistory.com/646, https://www.tensorflow.org/tutorials/generative/pix2pix
+# References:
+    # https://deep-learning-study.tistory.com/646,
+    # https://www.tensorflow.org/tutorials/generative/pix2pix
 
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 
 from model import Generator, Discriminator
 
 
 class Pix2PixLoss(nn.Module):
-    def __init__(self, lamb=100):
+    def __init__(self):
         super().__init__()
-
-        self.lamb = lamb
 
         self.cgan_crit = nn.BCELoss()
         # "Using L1 distance rather than L2 as L1 encourages less blurring."
         self.l1_crit = nn.L1Loss()
 
-    def forward(self, real_photo, fake_photo, real_pred, fake_pred):
+    def forward(self, real_image, fake_image, real_pred, fake_pred):
         # "$\mathbb{E}_{x, y}[\log D(x, y)]$"
         real_loss = self.cgan_crit(real_pred, torch.ones_like(real_pred, device=real_pred.device))
         # "$\mathbb{E}_{x, z}[\log(1 − D(x, G(x, z)))]$"
@@ -25,10 +24,8 @@ class Pix2PixLoss(nn.Module):
         cgan_loss = real_loss + fake_loss # "$\mathcal{L}_{cGAN}(G, D)$"
 
         # "$\mathcal{L}_{L1}(G) = \mathbb{E}_{x, y, z}[\lVert y - G(x, z) \rVert_{1}]$"
-        l1_loss = self.l1_crit(fake_photo, real_photo)
+        l1_loss = self.l1_crit(fake_image, real_image)
         return cgan_loss, l1_loss
-        # loss = cgan_loss + self.lamb * l1_loss
-        # return loss
 
 
 if __name__ == "__main__":
