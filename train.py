@@ -75,12 +75,12 @@ if __name__ == "__main__":
 
     crit = Pix2PixLoss()
 
-    accum_cgan_loss = 0
-    accum_l1_loss = 0
-    accum_tot_loss = 0
     best_loss = math.inf
     prev_ckpt_path = ".pth"
     for epoch in range(1, args.n_epochs + 1):
+        accum_cgan_loss = 0
+        accum_l1_loss = 0
+        accum_tot_loss = 0
         for step, (input_image, real_output_image) in enumerate(train_dl, start=1):
             input_image = input_image.to(DEVICE)
             real_output_image = real_output_image.to(DEVICE)
@@ -106,15 +106,10 @@ if __name__ == "__main__":
             accum_l1_loss += l1_loss.item()
             accum_tot_loss += tot_loss.item()
 
-            if step == len(train_dl):
-                print(f"[ {epoch}/{str(args.n_epochs)} ][ {step}/{len(train_dl)} ]", end="")
-                print(f"[ cGAN loss: {accum_cgan_loss / len(train_dl): .4f} ]", end="")
-                print(f"[ L1 loss: {accum_l1_loss / len(train_dl): .4f} ]", end="")
-                print(f"[ Total loss: {accum_tot_loss / len(train_dl): .4f} ]")
-
-                accum_cgan_loss = 0
-                accum_l1_loss = 0
-                accum_tot_loss = 0
+        print(f"[ {epoch}/{str(args.n_epochs)} ][ {step}/{len(train_dl)} ]", end="")
+        print(f"[ cGAN loss: {accum_cgan_loss / len(train_dl): .4f} ]", end="")
+        print(f"[ L1 loss: {accum_l1_loss / len(train_dl): .4f} ]", end="")
+        print(f"[ Total loss: {accum_tot_loss / len(train_dl): .2f} ]")
 
         if epoch % config.N_GEN_EPOCHS == 0:
             grid = facades_images_to_grid(
@@ -126,7 +121,7 @@ if __name__ == "__main__":
                 grid, path=f"""{Path(__file__).parent}/generated_images/epoch_{epoch}.jpg""",
             )
 
-        if tot_loss.item() < best_loss:
+        if accum_tot_loss < best_loss:
             cur_ckpt_path = f"{Path(__file__).parent}/checkpoints/epoch_{epoch}.pth"
             save_checkpoint(
                 epoch=epoch,
@@ -134,11 +129,11 @@ if __name__ == "__main__":
                 gen=gen,
                 disc_optim=disc_optim,
                 gen_optim=gen_optim,
-                loss=tot_loss.item(),
+                loss=accum_tot_loss,
                 save_path=cur_ckpt_path,
             )
             Path(prev_ckpt_path).unlink(missing_ok=True)
             print(f"""Saved checkpoint.""")
 
-            best_loss = tot_loss.item()
+            best_loss = accum_tot_loss
             prev_ckpt_path = cur_ckpt_path
