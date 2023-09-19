@@ -7,6 +7,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+
 # Let 'Ck' denote a Convolution-norm-ReLU layer with $k$ filters. 'CDk' denotes a
 # Convolution-normDropout-ReLUlayer with a dropout rate of 50%. All convolutions are $4 \times 4$
 # spatial filters applied with stride $2$. Convolutions in the encoder, and in the discriminator,
@@ -36,7 +37,7 @@ class ConvBlock(nn.Module):
             # of the training batch. This approach to batch normalization, when the batch size is set to $1$,
             # has been termed 'instance normalization' and has been demonstrated to be effective
             # at image generation tasks."
-            self.norm = nn.InstanceNorm2d(out_channels, track_running_stats=False)
+            self.norm = nn.InstanceNorm2d(out_channels, affine=True, track_running_stats=False)
         if drop:
             self.dropout = nn.Dropout(0.5)
 
@@ -57,6 +58,7 @@ class ConvBlock(nn.Module):
 def _init_weights(model):
     for m in model.modules():
         if isinstance(m, (nn.Conv2d, nn.ConvTranspose2d, nn.InstanceNorm2d)):
+            print(m)
             m.weight.data.normal_(0, 0.02)
 
 
