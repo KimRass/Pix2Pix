@@ -77,6 +77,7 @@ if __name__ == "__main__":
 
     accum_cgan_loss = 0
     accum_l1_loss = 0
+    accum_tot_loss = 0
     best_loss = math.inf
     prev_ckpt_path = ".pth"
     for epoch in range(1, args.n_epochs + 1):
@@ -96,21 +97,24 @@ if __name__ == "__main__":
                 real_pred=real_pred,
                 fake_pred=fake_pred,
             )
-            loss = cgan_loss + args.lamb * l1_loss
-            loss.backward()
+            tot_loss = cgan_loss + args.lamb * l1_loss
+            tot_loss.backward()
             disc_optim.step()
             gen_optim.step()
 
             accum_cgan_loss += cgan_loss.item()
             accum_l1_loss += l1_loss.item()
+            accum_tot_loss += tot_loss.item()
 
             if step == len(train_dl):
                 print(f"[ {epoch}/{str(args.n_epochs)} ][ {step}/{len(train_dl)} ]", end="")
                 print(f"[ cGAN loss: {accum_cgan_loss / len(train_dl): .4f} ]", end="")
-                print(f"[ L1 loss: {accum_l1_loss / len(train_dl): .4f} ]")
+                print(f"[ L1 loss: {accum_l1_loss / len(train_dl): .4f} ]", end="")
+                print(f"[ Total loss: {accum_tot_loss / len(train_dl): .4f} ]")
 
                 accum_cgan_loss = 0
                 accum_l1_loss = 0
+                accum_tot_loss = 0
 
         if epoch % config.N_GEN_EPOCHS == 0:
             grid = facades_images_to_grid(
