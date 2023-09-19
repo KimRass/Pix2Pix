@@ -88,9 +88,8 @@ if __name__ == "__main__":
             fake_pred = disc(label, fake_image)
 
             fake_loss = cgan_crit(fake_pred, torch.zeros_like(fake_pred, device=real_pred.device))
-            cgan_loss = real_loss + fake_loss
             l1_loss = l1_crit(fake_image, real_image)
-            gen_loss = cgan_loss + config.LAMB * l1_loss
+            gen_loss = fake_loss + config.LAMB * l1_loss
 
             gen_optim.zero_grad()
             gen_loss.backward()
