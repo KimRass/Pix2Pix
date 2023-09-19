@@ -179,4 +179,5 @@ if __name__ == "__main__":
                 loss=loss.item(),
                 save_path=f"""{Path(__file__).parent}/checkpoints/epoch_{epoch}.pth""",
             )
+            print(f"""Saved checkpoint.""")
             best_loss = loss.item()
