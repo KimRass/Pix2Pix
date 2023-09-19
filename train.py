@@ -42,15 +42,18 @@ def save_checkpoint(epoch, disc, gen, disc_optim, gen_optim, loss, save_path):
 if __name__ == "__main__":
     args = get_args()
 
+    lr = config.LR * (args.batch_size)
+    print(f"Learning rate: {lr}")
+
     DEVICE = get_device()
     gen = Generator(in_channels=3, out_channels=3).to(DEVICE)
     disc = Discriminator(in_channels=6).to(DEVICE)
 
     disc_optim = Adam(
-        params=disc.parameters(), lr=config.LR, betas=(config.BETA1, config.BETA2),
+        params=disc.parameters(), lr=lr, betas=(config.BETA1, config.BETA2),
     )
     gen_optim = Adam(
-        params=gen.parameters(), lr=config.LR, betas=(config.BETA1, config.BETA2),
+        params=gen.parameters(), lr=lr, betas=(config.BETA1, config.BETA2),
     )
 
     train_ds = FacadesDataset(
