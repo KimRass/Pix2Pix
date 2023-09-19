@@ -63,10 +63,10 @@ if __name__ == "__main__":
             gen_optim.step()
 
             if step == len(train_dl):
-                print(f"[ {epoch}/{str(config.N_EPOCHS)} ][ {step}/{len(train_dl)} ], enc=""")
+                print(f"[ {epoch}/{str(config.N_EPOCHS)} ][ {step}/{len(train_dl)} ]", end="")
                 print(f"[ CGAN loss: {cgan_loss.item(): .4f} ][ L1 loss: {l1_loss.item(): .4f} ]")
 
-        if epoch % 2 == 0:
+        if epoch % config.N_GEN_EPOCHS == 0:
             label = label.detach().cpu()
             real_photo = real_photo.detach().cpu()
             fake_photo = fake_photo.detach().cpu()
@@ -79,7 +79,7 @@ if __name__ == "__main__":
             grid = batched_image_to_grid(image, n_cols=3)
             save_image(grid, path=f"""{Path(__file__).parent}/generated_images/epoch_{epoch}.jpg""")
 
-        if epoch % 10 == 0:
+        if epoch % config.N_SAVE_EPOCHS == 0:
             save_parameters(
                 model=gen,
                 save_path=f"""{Path(__file__).parent}/pretrained/epoch_{epoch}.pth"""

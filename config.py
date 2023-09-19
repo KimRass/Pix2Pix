@@ -11,3 +11,5 @@ LAMB = 100
 ### Training
 # "Trained for $200$ epochs."
 N_EPOCHS = 200
+N_SAVE_EPOCHS = 10 # Save checkpoint every
+N_GEN_EPOCHS = 2 # Generate images every
