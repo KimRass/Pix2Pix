@@ -136,8 +136,8 @@ class Discriminator(nn.Module): # "$70 \times 70$ 'PatchhGAN'"
 
         _init_weights(self)
 
-    def forward(self, x, y):
-        x = torch.cat([x, y], dim=1)
+    def forward(self, input_image, output_image):
+        x = torch.cat([input_image, output_image], dim=1)
 
         x = self.layer1(x) # `(b, 64, 128, 128)`
         x = self.layer2(x) # `(b, 128, 64, 64)`

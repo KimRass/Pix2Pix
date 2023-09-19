@@ -32,7 +32,7 @@ def get_image_dataset_mean_and_std(data_dir, ext="jpg"):
     return mean, std
 
 
-def denormalize(tensor, mean, std):
+def denorm(tensor, mean, std):
     tensor *= torch.Tensor(std)[None, :, None, None]
     tensor += torch.Tensor(mean)[None, :, None, None]
     return tensor

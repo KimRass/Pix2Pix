@@ -1,8 +1,12 @@
+import torch
 from torchvision.utils import make_grid
+from einops import rearrange
 import numpy as np
 from PIL import Image
-from moviepy.video.io.bindings import mplfig_to_npimage
 from pathlib import Path
+
+import config
+from torch_utils import denorm
 
 
 def _to_pil(img):
@@ -33,4 +37,31 @@ def batched_image_to_grid(image, n_cols):
         grid[:, (pad + h) * k: (pad + h) * k + pad, :] = 255
     for k in range(b // n_cols + 1):
         grid[(pad + h) * k: (pad + h) * k + pad, :, :] = 255
+    return grid
+
+
+def facades_images_to_grid(input_image, real_output_image, fake_output_image):
+    input_image = input_image.detach().cpu()
+    real_output_image = real_output_image.detach().cpu()
+    fake_output_image = fake_output_image.detach().cpu()
+
+    input_image = denorm(
+        input_image,
+        mean=config.FACADES_INPUT_IMG_MEAN,
+        std=config.FACADES_INPUT_IMG_STD,
+    )
+    real_output_image = denorm(
+        real_output_image,
+        mean=config.FACADES_OUTPUT_IMG_MEAN,
+        std=config.FACADES_OUTPUT_IMG_STD,
+    )
+    fake_output_image = denorm(
+        fake_output_image,
+        mean=config.FACADES_OUTPUT_IMG_MEAN,
+        std=config.FACADES_OUTPUT_IMG_STD,
+    )
+
+    concat = torch.cat([input_image, real_output_image, fake_output_image], dim=0)
+    gen_image = rearrange(concat, pattern="(n m) c h w -> (m n) c h w", n=3)
+    grid = batched_image_to_grid(gen_image, n_cols=3)
     return grid
