@@ -71,16 +71,11 @@ if __name__ == "__main__":
     )
 
     crit = Pix2PixLoss()
-    # cgan_crit = nn.BCELoss()
-    # # "Using L1 distance rather than L2 as L1 encourages less blurring."
-    # l1_crit = nn.L1Loss()
 
-    # disc_accum_loss = 0
-    # gen_accum_loss = 0
-    # l1_accum_loss = 0
     accum_cgan_loss = 0
     accum_l1_loss = 0
     best_loss = math.inf
+    prev_ckpt_path = ".pth"
     for epoch in range(1, args.n_epochs + 1):
         for step, (input_image, real_output_image) in enumerate(train_dl, start=1):
             input_image = input_image.to(DEVICE)
@@ -114,51 +109,6 @@ if __name__ == "__main__":
                 accum_cgan_loss = 0
                 accum_l1_loss = 0
 
-            # ### Optimize D.
-            # real_pred = disc(input_image, real_output_image)
-            # fake_output_image = gen(input_image)
-            # fake_pred = disc(input_image, fake_output_image.detach())
-
-            # # "$\mathbb{E}_{x, y}[\log D(x, y)]$"
-            # real_loss = cgan_crit(real_pred, torch.ones_like(real_pred, device=real_pred.device))
-            # # "$\mathbb{E}_{x, z}[\log(1 − D(x, G(x, z)))]$"
-            # fake_loss = cgan_crit(fake_pred, torch.zeros_like(fake_pred, device=real_pred.device))
-            # disc_loss = real_loss + fake_loss # "$\mathcal{L}_{cGAN}(G, D)$"
-
-            # disc_optim.zero_grad()
-            # disc_loss.backward()
-            # disc_optim.step()
-
-            # ### Optimize G.
-            # freeze_model(disc)
-
-            # fake_output_image = gen(input_image)
-            # fake_pred = disc(input_image, fake_output_image)
-
-            # fake_loss = cgan_crit(fake_pred, torch.zeros_like(fake_pred, device=real_pred.device))
-            # l1_loss = l1_crit(fake_output_image, real_output_image)
-            # gen_loss = fake_loss + args.lamb * l1_loss
-
-            # gen_optim.zero_grad()
-            # gen_loss.backward()
-            # gen_optim.step()
-
-            # unfreeze_model(disc)
-
-            # disc_accum_loss += disc_loss.item()
-            # gen_accum_loss += gen_loss.item()
-            # l1_accum_loss += l1_loss.item()
-
-            # if step == len(train_dl):
-            #     print(f"[ {epoch}/{str(args.n_epochs)} ][ {step}/{len(train_dl)} ]", end="")
-            #     print(f"[ L1 loss: {l1_accum_loss / len(train_dl): .4f} ]", end="")
-            #     print(f"[ D loss: {disc_accum_loss / len(train_dl): .4f} ]", end="")
-            #     print(f"[ G loss: {gen_accum_loss / len(train_dl): .4f} ]")
-
-            #     disc_accum_loss = 0
-            #     gen_accum_loss = 0
-            #     l1_accum_loss = 0
-
         if epoch % config.N_GEN_EPOCHS == 0:
             grid = facades_images_to_grid(
                 input_image=input_image,
@@ -170,6 +120,7 @@ if __name__ == "__main__":
             )
 
         if loss.item() < best_loss:
+            cur_ckpt_path = f"{Path(__file__).parent}/checkpoints/epoch_{epoch}.pth"
             save_checkpoint(
                 epoch=epoch,
                 disc=disc,
@@ -177,7 +128,10 @@ if __name__ == "__main__":
                 disc_optim=disc_optim,
                 gen_optim=gen_optim,
                 loss=loss.item(),
-                save_path=f"""{Path(__file__).parent}/checkpoints/epoch_{epoch}.pth""",
+                save_path=cur_ckpt_path,
             )
+            Path(prev_ckpt_path).unlink(missing_ok=True)
             print(f"""Saved checkpoint.""")
+
             best_loss = loss.item()
+            prev_ckpt_path = cur_ckpt_path
