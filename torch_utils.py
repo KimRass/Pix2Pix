@@ -37,3 +37,12 @@ def denormalize(tensor, mean, std):
     tensor += torch.Tensor(mean)[None, :, None, None]
     return tensor
 
+
+def freeze_model(model):
+    for p in model.parameters():
+        p.requires_grad = False
+
+
+def unfreeze_model(model):
+    for p in model.parameters():
+        p.requires_grad = True

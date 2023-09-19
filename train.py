@@ -7,7 +7,7 @@ import argparse
 import config
 from model import Generator, Discriminator
 from loss import Pix2PixLoss
-from torch_utils import get_device, denormalize
+from torch_utils import get_device, denormalize, freeze_model, unfreeze_model
 from facades import get_facades_dataloader
 from image_utils import save_image, batched_image_to_grid
 
@@ -59,7 +59,8 @@ if __name__ == "__main__":
     # "Using L1 distance rather than L2 as L1 encourages less blurring."
     l1_crit = nn.L1Loss()
 
-    losses = list()
+    disc_accum_loss = 0
+    gen_accum_loss = 0
     for epoch in range(1, config.N_EPOCHS + 1):
         for step, (label, real_image) in enumerate(train_dl, start=1):
             label = label.to(DEVICE)
@@ -81,6 +82,8 @@ if __name__ == "__main__":
             disc_optim.step()
 
             ### Optimize G.
+            freeze_model(disc)
+
             fake_image = gen(label)
             fake_pred = disc(label, fake_image)
 
@@ -93,9 +96,15 @@ if __name__ == "__main__":
             gen_loss.backward()
             gen_optim.step()
 
+            unfreeze_model(disc)
+
+            disc_accum_loss += disc_loss.item()
+            gen_accum_loss += gen_loss.item()
+
             if step == len(train_dl):
                 print(f"[ {epoch}/{str(config.N_EPOCHS)} ][ {step}/{len(train_dl)} ]", end="")
-                print(f"[ D loss: {disc_loss.item(): .4f} ][ G loss: {gen_loss.item(): .4f} ]")
+                print(f"[ D loss: {disc_accum_loss / len(train_dl): .4f} ]", end="")
+                print(f"[ G loss: {gen_accum_loss / len(train_dl): .4f} ]")
 
         if epoch % config.N_GEN_EPOCHS == 0:
             label = label.detach().cpu()
