@@ -116,9 +116,9 @@ if __name__ == "__main__":
 
             if step == len(train_dl):
                 print(f"[ {epoch}/{str(args.n_epochs)} ][ {step}/{len(train_dl)} ]", end="")
-                print(f"[ D loss: {disc_accum_loss / len(train_dl): .4f} ]", end="")
-                print(f"[ G loss: {gen_accum_loss / len(train_dl): .4f} ]", end="")
                 print(f"[ L1 loss: {l1_accum_loss / len(train_dl): .4f} ]", end="")
+                print(f"[ D loss: {disc_accum_loss / len(train_dl): .4f} ]", end="")
+                print(f"[ G loss: {gen_accum_loss / len(train_dl): .4f} ]")
 
                 disc_accum_loss = 0
                 gen_accum_loss = 0
