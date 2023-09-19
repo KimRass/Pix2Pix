@@ -49,7 +49,7 @@ class FacadesDataset(Dataset):
 
     def __getitem__(self, idx):
         label_path = self.label_paths[idx]
-        photo_path = str(label_path).replace("/archive/trainB/", "/archive/trainA/")
+        photo_path = str(label_path).replace("/trainB/", "/trainA/")
         photo_path = photo_path.replace("_B.jpg", "_A.jpg")
 
         label = Image.open(label_path).convert("RGB")
