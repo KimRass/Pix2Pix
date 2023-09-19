@@ -61,7 +61,7 @@ if __name__ == "__main__":
         train_ds,
         batch_size=args.batch_size,
         shuffle=True,
-        n_workers=args.n_workers,
+        num_workers=args.n_workers,
         pin_memory=True,
         drop_last=True,
     )
