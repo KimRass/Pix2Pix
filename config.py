@@ -1,6 +1,8 @@
 ### Data
 FACADES_LABEL_MEAN = (0.222, 0.299, 0.745)
 FACADES_LABEL_STD = (0.346, 0.286, 0.336)
+FACADES_PHOTO_MEAN = (0.478, 0.453, 0.417)
+FACADES_PHOTO_STD = (0.243, 0.235, 0.236)
 
 ### Optimizer
 # "We use minibatch SGD and apply the Adam solver, with a learning rate of $0.0002$, and momentum parameters
