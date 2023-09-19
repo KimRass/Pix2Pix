@@ -126,7 +126,7 @@ if __name__ == "__main__":
                 grid, path=f"""{Path(__file__).parent}/generated_images/epoch_{epoch}.jpg""",
             )
 
-        if loss.item() < best_loss:
+        if tot_loss.item() < best_loss:
             cur_ckpt_path = f"{Path(__file__).parent}/checkpoints/epoch_{epoch}.pth"
             save_checkpoint(
                 epoch=epoch,
@@ -134,11 +134,11 @@ if __name__ == "__main__":
                 gen=gen,
                 disc_optim=disc_optim,
                 gen_optim=gen_optim,
-                loss=loss.item(),
+                loss=tot_loss.item(),
                 save_path=cur_ckpt_path,
             )
             Path(prev_ckpt_path).unlink(missing_ok=True)
             print(f"""Saved checkpoint.""")
 
-            best_loss = loss.item()
+            best_loss = tot_loss.item()
             prev_ckpt_path = cur_ckpt_path
