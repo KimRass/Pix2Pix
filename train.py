@@ -42,7 +42,7 @@ def save_checkpoint(epoch, disc, gen, disc_optim, gen_optim, loss, save_path):
 if __name__ == "__main__":
     args = get_args()
 
-    lr = config.LR * (args.batch_size)
+    lr = config.LR * ((args.batch_size) ** 0.5)
     print(f"Learning rate: {lr}")
 
     DEVICE = get_device()
