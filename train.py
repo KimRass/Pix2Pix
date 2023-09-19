@@ -17,6 +17,7 @@ def get_args():
     parser = argparse.ArgumentParser()
 
     parser.add_argument("--data_dir", type=str, required=True)
+    parser.add_argument("--n_epochs", type=int, required=True)
     parser.add_argument("--batch_size", type=int, required=True)
     parser.add_argument("--n_workers", type=int, required=True)
     parser.add_argument("--ckpt_path", type=str, required=False)
@@ -72,7 +73,7 @@ if __name__ == "__main__":
 
     disc_accum_loss = 0
     gen_accum_loss = 0
-    for epoch in range(1, config.N_EPOCHS + 1):
+    for epoch in range(1, config.n_epochs + 1):
         for step, (label, real_image) in enumerate(train_dl, start=1):
             label = label.to(DEVICE)
             real_image = real_image.to(DEVICE)
@@ -112,7 +113,7 @@ if __name__ == "__main__":
             gen_accum_loss += gen_loss.item()
 
             if step == len(train_dl):
-                print(f"[ {epoch}/{str(config.N_EPOCHS)} ][ {step}/{len(train_dl)} ]", end="")
+                print(f"[ {epoch}/{str(config.n_epochs)} ][ {step}/{len(train_dl)} ]", end="")
                 print(f"[ D loss: {disc_accum_loss / len(train_dl): .4f} ]", end="")
                 print(f"[ G loss: {gen_accum_loss / len(train_dl): .4f} ]")
 
