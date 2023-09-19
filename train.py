@@ -10,7 +10,7 @@ from model import Generator, Discriminator
 from loss import Pix2PixLoss
 from torch_utils import get_device, denorm, freeze_model, unfreeze_model
 from facades import FacadesDataset
-from image_utils import save_image, batched_image_to_grid, facades_images_to_grid
+from image_utils import save_image, facades_images_to_grid
 
 
 def get_args():
