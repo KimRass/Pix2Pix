@@ -49,7 +49,7 @@ class FacadesDataset(Dataset):
         output_image = TF.crop(output_image, top=t, left=l, height=h, width=w)
 
         output_image = self.color_jitter(output_image)
-        output_image.show()
+        # output_image.show()
 
         # "Mirroring"
         p = random.random()
