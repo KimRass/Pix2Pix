@@ -11,11 +11,6 @@ from PIL import Image
 from pathlib import Path
 import random
 
-from torch_utils import get_image_dataset_mean_and_std
-
-# get_image_dataset_mean_and_std("/Users/jongbeomkim/Documents/datasets/archive/trainA", ext="jpg")
-# get_image_dataset_mean_and_std("/Users/jongbeomkim/Documents/datasets/archive/trainB", ext="jpg")
-
 
 class FacadesDataset(Dataset):
     def __init__(
