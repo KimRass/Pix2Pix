@@ -39,23 +39,23 @@ class FacadesDataset(Dataset):
         )
     
     def transform(self, input_image, output_image):
-        # "Random jitter was applied by resizing the $256 \times 256$ input images to
-        # $286 \times 286$ and then randomly cropping back to size $256 \times 256$."
-        input_image = TF.resize(input_image, size=286)
-        output_image = TF.resize(output_image, size=286)
+        if self.split == "train":
+            # "Random jitter was applied by resizing the $256 \times 256$ input images to
+            # $286 \times 286$ and then randomly cropping back to size $256 \times 256$."
+            input_image = TF.resize(input_image, size=286)
+            output_image = TF.resize(output_image, size=286)
 
-        t, l, h, w = T.RandomCrop.get_params(input_image, output_size=(256, 256))
-        input_image = TF.crop(input_image, top=t, left=l, height=h, width=w)
-        output_image = TF.crop(output_image, top=t, left=l, height=h, width=w)
+            t, l, h, w = T.RandomCrop.get_params(input_image, output_size=(256, 256))
+            input_image = TF.crop(input_image, top=t, left=l, height=h, width=w)
+            output_image = TF.crop(output_image, top=t, left=l, height=h, width=w)
 
-        output_image = self.color_jitter(output_image)
-        # output_image.show()
+            output_image = self.color_jitter(output_image)
 
-        # "Mirroring"
-        p = random.random()
-        if p > 0.5:
-            input_image = TF.hflip(input_image)
-            output_image = TF.hflip(output_image)
+            # "Mirroring"
+            p = random.random()
+            if p > 0.5:
+                input_image = TF.hflip(input_image)
+                output_image = TF.hflip(output_image)
 
         input_image = T.ToTensor()(input_image)
         input_image = T.Normalize(
@@ -73,11 +73,10 @@ class FacadesDataset(Dataset):
 
     def __getitem__(self, idx):
         input_img_path = self.input_img_paths[idx]
-        output_img_path = str(input_img_path).replace("/trainB/", "/trainA/")
+        output_img_path = str(input_img_path).replace(f"/{self.split}B/", f"/{self.split}A/")
         output_img_path = output_img_path.replace("_B.jpg", "_A.jpg")
 
         input_image = Image.open(input_img_path).convert("RGB")
         output_image = Image.open(output_img_path).convert("RGB")
-        if self.split == "train":
-            input_image, output_image = self.transform(input_image, output_image)
+        input_image, output_image = self.transform(input_image, output_image)
         return input_image, output_image

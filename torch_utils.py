@@ -46,3 +46,8 @@ def freeze_model(model):
 def unfreeze_model(model):
     for p in model.parameters():
         p.requires_grad = True
+
+
+def exclude_other_than_gen(old_ckpt_path, new_ckpt_path, device):
+    ckpt = torch.load(old_ckpt_path, map_location=device)
+    torch.save(ckpt["G"], str(new_ckpt_path))
