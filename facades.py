@@ -37,6 +37,11 @@ class FacadesDataset(Dataset):
         self.split = split
 
         self.input_img_paths = list(Path(data_dir).glob(f"""{split}B/*.jpg"""))
+
+        self.color_jitter = T.RandomApply(
+            [T.ColorJitter(brightness=0.3, contrast=0.3, saturation=0.3)],
+            p=0.5,
+        )
     
     def transform(self, input_image, output_image):
         # "Random jitter was applied by resizing the $256 \times 256$ input images to
@@ -47,6 +52,9 @@ class FacadesDataset(Dataset):
         t, l, h, w = T.RandomCrop.get_params(input_image, output_size=(256, 256))
         input_image = TF.crop(input_image, top=t, left=l, height=h, width=w)
         output_image = TF.crop(output_image, top=t, left=l, height=h, width=w)
+
+        output_image = self.color_jitter(output_image)
+        output_image.show()
 
         # "Mirroring"
         p = random.random()
