@@ -16,3 +16,23 @@ $$\mathcal{L}_{L1}(G) = \mathbb{E}_{x, y, z}[\Vert y - G(x, z) \Vert_{1}]$$
 # Pre-trained Model
 - [pix2pix2_facades.pth](https://drive.google.com/file/d/1SPhUPA5ms4MDCuSj0bnM_Q4y8yUVOj82/view?usp=sharing)
     - Trained on Facades dataset for 789 epochs with $\lambda = 85$.
+
+# Researches
+## Convergence
+- 논문에서는 Facades dataset에 대해서 200 epochs만을 학습시켰지만, 그것만으로는 모델이 충분히 수렴하지 않았습니다. 특히 G.T. output image의 다양한 색깔을 제대로 구현하지 못했습니다.
+<!-- ## Image Mean and Standard Deviation
+- Facades dataset의 train set에 대해 input images와 output images 각각에 대해 mean과 standard deviation을 계산하면 다음과 같습니다.
+    ```python
+    FACADES_INPUT_IMG_MEAN = (0.222, 0.299, 0.745)
+    FACADES_INPUT_IMG_STD = (0.346, 0.286, 0.336)
+    FACADES_OUTPUT_IMG_MEAN = (0.478, 0.453, 0.417)
+    FACADES_OUTPUT_IMG_STD = (0.243, 0.235, 0.236)
+    ```
+- 반면 다음과 같이 설정하면 모델에 입력되는 모든 tensors의 값이 $[-1, 1]$의 값을 갖게 됩니다.
+    ```python
+    FACADES_INPUT_IMG_MEAN = (0.5, 0.5, 0.5)
+    FACADES_INPUT_IMG_STD = (0.5, 0.5, 0.5)
+    FACADES_OUTPUT_IMG_MEAN = (0.5, 0.5, 0.5)
+    FACADES_OUTPUT_IMG_STD = (0.5, 0.5, 0.5)
+    ```
+- 두 가지 settings를 가지고 실험을 해 본 결과, 후자의 학습 속도가 전자보다 훨씬 빨랐으며 loss의 크기도 더 작았습니다. -->

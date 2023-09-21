@@ -119,7 +119,7 @@ if __name__ == "__main__":
                 fake_output_image=fake_output_image,
             )
             save_image(
-                grid, path=f"""{Path(__file__).parent}/generated_images/epoch_{epoch}.jpg""",
+                grid, path=f"{Path(__file__).parent}/generated_images/epoch_{epoch}.jpg",
             )
 
         if accum_tot_loss < best_loss:
@@ -134,7 +134,7 @@ if __name__ == "__main__":
                 save_path=cur_ckpt_path,
             )
             Path(prev_ckpt_path).unlink(missing_ok=True)
-            print(f"""Saved checkpoint.""")
+            print(f"Saved checkpoint.")
 
             best_loss = accum_tot_loss
             prev_ckpt_path = cur_ckpt_path
