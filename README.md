@@ -13,6 +13,6 @@ $$\mathcal{L}_{L1}(G) = \mathbb{E}_{x, y, z}[\Vert y - G(x, z) \Vert_{1}]$$
 - [44] [Unsupervised Representation Learning with Deep Convolutional Generative Adversarial Networks](https://arxiv.org/pdf/1511.06434.pdf)
 - [50] [U-Net: Convolutional Networks for Biomedical Image Segmentation](https://arxiv.org/pdf/1505.04597.pdf)
 
-# Pre-trained models
+# Pre-trained Model
 - [pix2pix2_facades.pth](https://drive.google.com/file/d/1SPhUPA5ms4MDCuSj0bnM_Q4y8yUVOj82/view?usp=sharing)
-    - Traind on Facades dataset for 789 epochs with $\lambda = 85$.
+    - Trained on Facades dataset for 789 epochs with $\lambda = 85$.
