@@ -77,6 +77,7 @@ class FacadesDataset(Dataset):
         output_img_path = output_img_path.replace("_B.jpg", "_A.jpg")
 
         input_image = Image.open(input_img_path).convert("RGB")
+        input_image.show()
         output_image = Image.open(output_img_path).convert("RGB")
         input_image, output_image = self.transform(input_image, output_image)
         return input_image, output_image
