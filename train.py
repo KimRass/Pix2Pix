@@ -11,7 +11,7 @@ from loss import Pix2PixLoss
 from torch_utils import get_device
 from facades import FacadesDataset
 from googlemaps import GoogleMapsDataset
-from image_utils import save_image, facades_images_to_grid
+from image_utils import save_image, images_to_grid
 
 
 def get_args():
@@ -122,10 +122,14 @@ if __name__ == "__main__":
         print(f"[ Total loss: {accum_tot_loss / len(train_dl): .2f} ]")
 
         if epoch % config.N_GEN_EPOCHS == 0:
-            grid = facades_images_to_grid(
+            grid = images_to_grid(
                 input_image=input_image,
                 real_output_image=real_output_image,
                 fake_output_image=fake_output_image,
+                input_img_mean=config.GOOGLEMAPS_INPUT_IMG_MEAN,
+                input_img_std=config.GOOGLEMAPS_INPUT_IMG_STD,
+                output_img_mean=config.GOOGLEMAPS_OUTPUT_IMG_MEAN,
+                output_img_std=config.GOOGLEMAPS_OUTPUT_IMG_STD,
             )
             save_image(
                 grid, path=f"{Path(__file__).parent}/generated_images/epoch_{epoch}.jpg",

@@ -39,26 +39,22 @@ def batched_image_to_grid(image, n_cols):
     return grid
 
 
-def facades_images_to_grid(input_image, real_output_image, fake_output_image):
+def images_to_grid(
+    input_image,
+    real_output_image,
+    fake_output_image,
+    input_img_mean,
+    input_img_std,
+    output_img_mean,
+    output_img_std,
+):
     input_image = input_image.detach().cpu()
     real_output_image = real_output_image.detach().cpu()
     fake_output_image = fake_output_image.detach().cpu()
 
-    input_image = denorm(
-        input_image,
-        mean=config.FACADES_INPUT_IMG_MEAN,
-        std=config.FACADES_INPUT_IMG_STD,
-    )
-    real_output_image = denorm(
-        real_output_image,
-        mean=config.FACADES_OUTPUT_IMG_MEAN,
-        std=config.FACADES_OUTPUT_IMG_STD,
-    )
-    fake_output_image = denorm(
-        fake_output_image,
-        mean=config.FACADES_OUTPUT_IMG_MEAN,
-        std=config.FACADES_OUTPUT_IMG_STD,
-    )
+    input_image = denorm(input_image, mean=input_img_mean, std=input_img_std)
+    real_output_image = denorm(real_output_image, mean=output_img_mean, std=output_img_std)
+    fake_output_image = denorm(fake_output_image, mean=output_img_mean, std=output_img_std)
 
     concat = torch.cat([input_image, real_output_image, fake_output_image], dim=0)
     gen_image = rearrange(concat, pattern="(n m) c h w -> (m n) c h w", n=3)
