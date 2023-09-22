@@ -57,8 +57,6 @@ class GoogleMapsDataset(FacadesDataset):
             if random.random() > 0.5:
                 input_image = TF.hflip(input_image)
                 output_image = TF.hflip(output_image)
-        input_image.show()
-        output_image.show()
 
         input_image = T.ToTensor()(input_image)
         input_image = T.Normalize(
