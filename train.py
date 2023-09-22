@@ -10,6 +10,7 @@ from model import Generator, Discriminator
 from loss import Pix2PixLoss
 from torch_utils import get_device
 from facades import FacadesDataset
+from googlemaps import GoogleMapsDataset
 from image_utils import save_image, facades_images_to_grid
 
 
@@ -57,7 +58,15 @@ if __name__ == "__main__":
         params=gen.parameters(), lr=lr, betas=(config.BETA1, config.BETA2),
     )
 
-    train_ds = FacadesDataset(
+    # train_ds = FacadesDataset(
+    #     data_dir=args.data_dir,
+    #     input_img_mean=config.FACADES_INPUT_IMG_MEAN,
+    #     input_img_std=config.FACADES_INPUT_IMG_STD,
+    #     output_img_mean=config.FACADES_OUTPUT_IMG_MEAN,
+    #     output_img_std=config.FACADES_OUTPUT_IMG_STD,
+    #     split="train",
+    # )
+    train_ds = GoogleMapsDataset(
         data_dir=args.data_dir,
         input_img_mean=config.FACADES_INPUT_IMG_MEAN,
         input_img_std=config.FACADES_INPUT_IMG_STD,
