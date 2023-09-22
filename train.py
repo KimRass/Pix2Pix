@@ -68,10 +68,10 @@ if __name__ == "__main__":
     # )
     train_ds = GoogleMapsDataset(
         data_dir=args.data_dir,
-        input_img_mean=config.FACADES_INPUT_IMG_MEAN,
-        input_img_std=config.FACADES_INPUT_IMG_STD,
-        output_img_mean=config.FACADES_OUTPUT_IMG_MEAN,
-        output_img_std=config.FACADES_OUTPUT_IMG_STD,
+        input_img_mean=config.GOOGLEMAPS_INPUT_IMG_MEAN,
+        input_img_std=config.GOOGLEMAPS_INPUT_IMG_STD,
+        output_img_mean=config.GOOGLEMAPS_OUTPUT_IMG_MEAN,
+        output_img_std=config.GOOGLEMAPS_OUTPUT_IMG_STD,
         split="train",
     )
     train_dl = DataLoader(
