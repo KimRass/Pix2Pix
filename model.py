@@ -14,7 +14,14 @@ import torch.nn.functional as F
 # downsample by a factor of $2$, whereas in the decoder they upsample by a factor of $$."
 class ConvBlock(nn.Module):
     def __init__(
-        self, in_channels, out_channels, stride=2, upsample=False, drop=True, normalize=True, leaky=False
+        self,
+        in_channels,
+        out_channels,
+        stride=2,
+        upsample=False,
+        drop=True,
+        normalize=True,
+        leaky=False,
     ):
         super().__init__()
 
@@ -25,18 +32,20 @@ class ConvBlock(nn.Module):
         self.leaky = leaky
 
         if not upsample:
-            self.conv = nn.Conv2d(in_channels, out_channels, kernel_size=4, stride=stride, padding=1, bias=False)
+            self.conv = nn.Conv2d(
+                in_channels, out_channels, kernel_size=4, stride=stride, padding=1, bias=False,
+            )
         else:
             self.conv = nn.ConvTranspose2d(
                 in_channels, out_channels, kernel_size=4, stride=stride, padding=1, bias=False
             )
         if normalize:
-            # "At inference time, we run the generator net in exactly the same manner as during the training phase.
-            # This differs from the usual protocol in that we apply dropout at test time, and we apply
-            # batch normalization using the statistics of the test batch, rather than aggregated statistics
-            # of the training batch. This approach to batch normalization, when the batch size is set to $1$,
-            # has been termed 'instance normalization' and has been demonstrated to be effective
-            # at image generation tasks."
+            # "At inference time, we run the generator net in exactly the same manner as during
+            # the training phase. This differs from the usual protocol in that we apply dropout
+            # at test time, and we apply batch normalization using the statistics of the test batch,
+            # rather than aggregated statistics of the training batch. This approach to batch
+            # normalization, when the batch size is set to $1$, has been termed 'instance normalization'
+            # and has been demonstrated to be effective at image generation tasks."
             self.norm = nn.InstanceNorm2d(out_channels, affine=True, track_running_stats=False)
         if drop:
             self.dropout = nn.Dropout(0.5)
@@ -69,7 +78,9 @@ class Generator(nn.Module):
         # (Comment: 'k'는 `out_channels`의 값을 의미합니다.)
         # "'BatchNorm' is not applied to the first 'C64' layer in the encoder."
         # "All ReLUs in the encoder are leaky, with slope $0.2$, while ReLUs in the decoder are not leaky."
-        self.layer1 = ConvBlock(in_channels, 64, upsample=False, drop=False, normalize=False, leaky=True)
+        self.layer1 = ConvBlock(
+            in_channels, 64, upsample=False, drop=False, normalize=False, leaky=True,
+        )
         self.layer2 = ConvBlock(64, 128, upsample=False, drop=False, normalize=True, leaky=True)
         self.layer3 = ConvBlock(128, 256, upsample=False, drop=False, normalize=True, leaky=True)
         self.layer4 = ConvBlock(256, 512, upsample=False, drop=False, normalize=True, leaky=True)
@@ -87,8 +98,9 @@ class Generator(nn.Module):
         self.layer13 = ConvBlock(1024, 256, upsample=True, drop=False, normalize=True, leaky=False)
         self.layer14 = ConvBlock(512, 128, upsample=True, drop=False, normalize=True, leaky=False)
         self.layer15 = ConvBlock(256, 64, upsample=True, drop=False, normalize=False, leaky=False)
-        # "After the last layer in the decoder, a convolution is applied to map to the number of output channels
-        # ($3$ in general, except in colorization, where it is $2$), followed by a $Tanh$ function."
+        # "After the last layer in the decoder, a convolution is applied to map to the number of
+        # output channels ($3$ in general, except in colorization, where it is $2$), followed by
+        # a $Tanh$ function."
         self.layer16 = nn.ConvTranspose2d(128, out_channels, kernel_size=4, stride=2, padding=1)
 
         _init_weights(self)
@@ -126,10 +138,14 @@ class Discriminator(nn.Module): # "$70 \times 70$ 'PatchhGAN'"
         # "C64-C128-C256-C512"
         # "All ReLUs are leaky, with slope $0.2$."
         # "'BatchNormorm' is not applied to the first 'C64' layer."
-        self.layer1 = ConvBlock(in_channels, 64, upsample=False, drop=False, normalize=False, leaky=True)
+        self.layer1 = ConvBlock(
+            in_channels, 64, upsample=False, drop=False, normalize=False, leaky=True,
+        )
         self.layer2 = ConvBlock(64, 128, upsample=False, drop=False, normalize=True, leaky=True)
         self.layer3 = ConvBlock(128, 256, upsample=False, drop=False, normalize=True, leaky=True)
-        self.layer4 = ConvBlock(256, 512, stride=1, upsample=False, drop=False, normalize=True, leaky=True)
+        self.layer4 = ConvBlock(
+            256, 512, stride=1, upsample=False, drop=False, normalize=True, leaky=True,
+        )
         # "After the last layer, a convolution is applied to map to a 1-dimensional output,
         # followed by a Sigmoid function."
         self.layer5 = nn.Conv2d(512, 1, kernel_size=1)
@@ -145,8 +161,8 @@ class Discriminator(nn.Module): # "$70 \times 70$ 'PatchhGAN'"
         x = self.layer4(x) # `(b, 512, 31, 31)`
         x = self.layer5(x) # `(b, 1, 31, 31)`
         x = torch.sigmoid(x)
-        # "We run the discriminator convolutionally across the image, averaging all responses to provide
-        # the ultimate output of $D$."
+        # "We run the discriminator convolutionally across the image, averaging all responses
+        # to provide the ultimate output of $D$."
         x = x.mean(dim=(2, 3))
         return x
 

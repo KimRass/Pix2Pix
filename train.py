@@ -17,6 +17,7 @@ from image_utils import save_image, images_to_grid
 def get_args():
     parser = argparse.ArgumentParser()
 
+    parser.add_argument("--dataset", type=str, required=True)
     parser.add_argument("--data_dir", type=str, required=True)
     parser.add_argument("--n_epochs", type=int, required=True) # "Trained for $200$ epochs."
     parser.add_argument("--batch_size", type=int, required=True)
@@ -41,10 +42,28 @@ def save_checkpoint(epoch, disc, gen, disc_optim, gen_optim, loss, save_path):
     torch.save(ckpt, str(save_path))
 
 
+def select_ds(args):
+    if args.dataset == "facades":
+        ds = FacadesDataset
+        input_img_mean = config.FACADES_INPUT_IMG_MEAN
+        input_img_std = config.FACADES_INPUT_IMG_STD
+        output_img_mean = config.FACADES_OUTPUT_IMG_MEAN
+        output_img_std = config.FACADES_OUTPUT_IMG_STD
+    elif args.dataset == "google_maps":
+        ds = GoogleMapsDataset
+        input_img_mean = config.GOOGLEMAPS_INPUT_IMG_MEAN
+        input_img_std = config.GOOGLEMAPS_INPUT_IMG_STD
+        output_img_mean = config.GOOGLEMAPS_OUTPUT_IMG_MEAN
+        output_img_std = config.GOOGLEMAPS_OUTPUT_IMG_STD
+    return ds, input_img_mean, input_img_std, output_img_mean, output_img_std
+
+
 if __name__ == "__main__":
     args = get_args()
 
-    # 논문에서는 batch size를 1로 했는데, 그보다 큰 값으로 할 경우 Batch size를 제곱한 값에 비례하여 learning rate를 크게 만들겠습니다.
+
+    # 논문에서는 batch size를 1로 했는데, 그보다 큰 값으로 할 경우 Batch size를 제곱한 값에 비례하여
+    # learning rate를 크게 만들겠습니다.
     lr = config.LR * ((args.batch_size) ** 0.5)
     print(f"Learning rate: {lr}")
 
@@ -59,20 +78,13 @@ if __name__ == "__main__":
         params=gen.parameters(), lr=lr, betas=(config.BETA1, config.BETA2),
     )
 
-    # train_ds = FacadesDataset(
-    #     data_dir=args.data_dir,
-    #     input_img_mean=config.FACADES_INPUT_IMG_MEAN,
-    #     input_img_std=config.FACADES_INPUT_IMG_STD,
-    #     output_img_mean=config.FACADES_OUTPUT_IMG_MEAN,
-    #     output_img_std=config.FACADES_OUTPUT_IMG_STD,
-    #     split="train",
-    # )
-    train_ds = GoogleMapsDataset(
+    ds, input_img_mean, input_img_std, output_img_mean, output_img_std = select_ds(args)
+    train_ds = ds(
         data_dir=args.data_dir,
-        input_img_mean=config.GOOGLEMAPS_INPUT_IMG_MEAN,
-        input_img_std=config.GOOGLEMAPS_INPUT_IMG_STD,
-        output_img_mean=config.GOOGLEMAPS_OUTPUT_IMG_MEAN,
-        output_img_std=config.GOOGLEMAPS_OUTPUT_IMG_STD,
+        input_img_mean=input_img_mean,
+        input_img_std=input_img_std,
+        output_img_mean=output_img_mean,
+        output_img_std=output_img_std,
         split="train",
     )
     train_dl = DataLoader(
@@ -96,6 +108,8 @@ if __name__ == "__main__":
         best_loss = ckpt["loss"]
         prev_ckpt_path = args.resume_from
         init_epoch = ckpt["epoch"]
+        print(f"Resume from checkpoint '{args.resume_from}'.")
+        print(f"Best loss ever: {best_loss:.2f}")
     else:
         best_loss = math.inf
         prev_ckpt_path = ".pth"
@@ -140,10 +154,10 @@ if __name__ == "__main__":
                 input_image=input_image,
                 real_output_image=real_output_image,
                 fake_output_image=fake_output_image,
-                input_img_mean=config.GOOGLEMAPS_INPUT_IMG_MEAN,
-                input_img_std=config.GOOGLEMAPS_INPUT_IMG_STD,
-                output_img_mean=config.GOOGLEMAPS_OUTPUT_IMG_MEAN,
-                output_img_std=config.GOOGLEMAPS_OUTPUT_IMG_STD,
+                input_img_mean=input_img_mean,
+                input_img_std=input_img_std,
+                output_img_mean=output_img_mean,
+                output_img_std=output_img_std,
             )
             save_image(
                 grid, path=f"{Path(__file__).parent}/generated_images/epoch_{epoch}.jpg",
