@@ -17,6 +17,8 @@ $$\mathcal{L}_{L1}(G) = \mathbb{E}_{x, y, z}[\Vert y - G(x, z) \Vert_{1}]$$
 - [pix2pix2_facades.pth](https://drive.google.com/file/d/1SPhUPA5ms4MDCuSj0bnM_Q4y8yUVOj82/view?usp=sharing)
     - Trained on Facades dataset for 789 epochs with $\lambda = 85$.
 
+# Generated Images
+
 # Researches
 ## Convergence
 - 논문에서는 Facades dataset에 대해서 200 epochs만을 학습시켰지만, 그것만으로는 모델이 충분히 수렴하지 않았습니다. 특히 G.T. output image의 다양한 색깔을 제대로 구현하지 못했습니다.
