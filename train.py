@@ -61,7 +61,6 @@ def select_ds(args):
 if __name__ == "__main__":
     args = get_args()
 
-
     # 논문에서는 batch size를 1로 했는데, 그보다 큰 값으로 할 경우 Batch size를 제곱한 값에 비례하여
     # learning rate를 크게 만들겠습니다.
     lr = config.LR * ((args.batch_size) ** 0.5)
