@@ -110,7 +110,7 @@ if __name__ == "__main__":
         prev_ckpt_path = args.resume_from
         init_epoch = ckpt["epoch"]
         print(f"Resume from checkpoint '{args.resume_from}'.")
-        print(f"Best loss ever: {best_loss:.2f}")
+        print(f"Best loss ever: {best_loss:.4f}")
     else:
         best_loss = math.inf
         prev_ckpt_path = ".pth"
@@ -164,7 +164,7 @@ if __name__ == "__main__":
 
         print(f"[ {epoch}/{str(args.n_epochs)} ][ {step}/{len(train_dl)} ]", end="")
         print(f"[ D loss: {accum_disc_loss / len(train_dl): .4f} ]", end="")
-        print(f"[ G cGAN loss: {accum_fake_gen_loss / len(train_dl): .2f} ]", end="")
+        print(f"[ G cGAN loss: {accum_fake_gen_loss / len(train_dl): .4f} ]", end="")
         print(f"[ L1 loss: {accum_l1_loss / len(train_dl): .4f} ]")
 
         if epoch % config.N_GEN_EPOCHS == 0:
