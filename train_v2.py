@@ -120,6 +120,7 @@ if __name__ == "__main__":
         accum_disc_loss = 0
         accum_fake_gen_loss = 0
         accum_l1_loss = 0
+        accum_tot_loss = 0
         for step, (input_image, real_output_image) in enumerate(train_dl, start=1):
             input_image = input_image.to(DEVICE)
             real_output_image = real_output_image.to(DEVICE)
@@ -159,6 +160,7 @@ if __name__ == "__main__":
             accum_disc_loss += disc_loss.item()
             accum_fake_gen_loss += fake_gen_loss.item()
             accum_l1_loss += l1_loss.item()
+            accum_tot_loss += disc_loss.item() + gen_loss.item()
 
         print(f"[ {epoch}/{str(args.n_epochs)} ][ {step}/{len(train_dl)} ]", end="")
         print(f"[ D loss: {accum_disc_loss / len(train_dl): .4f} ]", end="")
@@ -179,7 +181,7 @@ if __name__ == "__main__":
                 grid, path=f"{Path(__file__).parent}/generated_images/epoch_{epoch}.jpg",
             )
 
-        if accum_fake_gen_loss < best_loss:
+        if accum_tot_loss < best_loss:
             cur_ckpt_path = f"{Path(__file__).parent}/checkpoints/epoch_{epoch}.pth"
             save_checkpoint(
                 epoch=epoch,
@@ -193,5 +195,5 @@ if __name__ == "__main__":
             Path(prev_ckpt_path).unlink(missing_ok=True)
             print(f"Saved checkpoint.")
 
-            best_loss = accum_fake_gen_loss
+            best_loss = accum_tot_loss
             prev_ckpt_path = cur_ckpt_path
