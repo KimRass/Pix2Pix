@@ -26,7 +26,6 @@ class Pix2PixLoss(nn.Module):
             fake_pred, torch.zeros_like(fake_pred, device=real_pred.device),
         )
         cgan_loss = real_loss + fake_loss # "$\mathcal{L}_{cGAN}(G, D)$"
-        cgan_loss *= 0.5
 
         # "$\mathcal{L}_{L1}(G) = \mathbb{E}_{x, y, z}[\lVert y - G(x, z) \rVert_{1}]$"
         l1_loss = self.l1_crit(fake_output_image, real_output_image)
