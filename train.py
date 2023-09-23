@@ -22,6 +22,7 @@ def get_args():
     parser.add_argument("--batch_size", type=int, required=True)
     parser.add_argument("--n_workers", type=int, required=True)
     parser.add_argument("--lamb", type=int, required=False, default=100)
+    parser.add_argument("--resume_from", type=str, required=False)
 
     args = parser.parse_args()
     return args
@@ -85,9 +86,22 @@ if __name__ == "__main__":
 
     crit = Pix2PixLoss()
 
-    best_loss = math.inf
-    prev_ckpt_path = ".pth"
-    for epoch in range(1, args.n_epochs + 1):
+    ### Resume
+    if args.resume_from is not None:
+        ckpt = torch.load(args.resume_from, map_location=DEVICE)
+        disc.load_state_dict(ckpt["D"])
+        gen.load_state_dict(ckpt["G"])
+        disc_optim.load_state_dict(ckpt["D_optimizer"])
+        gen_optim.load_state_dict(ckpt["G_optimizer"])
+        best_loss = ckpt["loss"]
+        prev_ckpt_path = args.resume_from
+        init_epoch = ckpt["epoch"]
+    else:
+        best_loss = math.inf
+        prev_ckpt_path = ".pth"
+        init_epoch = 0
+
+    for epoch in range(init_epoch + 1, args.n_epochs + 1):
         accum_cgan_loss = 0
         accum_l1_loss = 0
         accum_tot_loss = 0
