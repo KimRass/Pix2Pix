@@ -31,7 +31,7 @@ class FacadesDataset(Dataset):
         self.output_img_std = output_img_std
         self.split = split
 
-        self.input_img_paths = list(Path(data_dir).glob(f"""{split}B/*.jpg"""))
+        self.input_img_paths = sorted(list(Path(data_dir).glob(f"""{split}B/*.jpg""")))
     
     def transform(self, input_image, output_image):
         if self.split == "train":

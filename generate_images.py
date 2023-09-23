@@ -7,14 +7,16 @@ from tqdm import tqdm
 import config
 from model import Generator
 from torch_utils import get_device
-from facades import FacadesDataset
-from image_utils import save_image, facades_images_to_grid
+from image_utils import save_image, images_to_grid
+from train import select_ds
 
 
 def get_args():
     parser = argparse.ArgumentParser()
 
+    parser.add_argument("--dataset", type=str, required=True)
     parser.add_argument("--data_dir", type=str, required=True)
+    parser.add_argument("--save_dir", type=str, required=True)
     parser.add_argument("--ckpt_path", type=str, required=True)
     parser.add_argument("--batch_size", type=int, required=True)
     parser.add_argument("--n_workers", type=int, required=True)
@@ -33,12 +35,13 @@ if __name__ == "__main__":
     ckpt = torch.load(args.ckpt_path, map_location=DEVICE)
     gen.load_state_dict(ckpt)
 
-    test_ds = FacadesDataset(
+    ds, input_img_mean, input_img_std, output_img_mean, output_img_std = select_ds(args)
+    test_ds = ds(
         data_dir=args.data_dir,
-        input_img_mean=config.FACADES_INPUT_IMG_MEAN,
-        input_img_std=config.FACADES_INPUT_IMG_STD,
-        output_img_mean=config.FACADES_OUTPUT_IMG_MEAN,
-        output_img_std=config.FACADES_OUTPUT_IMG_STD,
+        input_img_mean=input_img_mean,
+        input_img_std=input_img_std,
+        output_img_mean=output_img_mean,
+        output_img_std=output_img_std,
         split="test",
     )
     test_dl = DataLoader(
@@ -46,23 +49,25 @@ if __name__ == "__main__":
         batch_size=args.batch_size,
         shuffle=False,
         num_workers=args.n_workers,
-        pin_memory=True,
-        drop_last=True,
+        pin_memory=False,
+        drop_last=False,
     )
 
     ### Generate images.
     gen.eval()
     with torch.no_grad():
-        for idx, (input_image, real_output_image) in enumerate(tqdm(test_dl)):
+        for idx, (input_image, real_output_image) in enumerate(tqdm(test_dl), start=1):
             input_image = input_image.to(DEVICE)
             real_output_image = real_output_image.to(DEVICE)
 
             gen_output_image = gen(input_image)
-            grid = facades_images_to_grid(
+            grid = images_to_grid(
                 input_image=input_image,
                 real_output_image=real_output_image,
                 fake_output_image=gen_output_image,
+                input_img_mean=input_img_mean,
+                input_img_std=input_img_std,
+                output_img_mean=output_img_mean,
+                output_img_std=output_img_std,
             )
-            save_image(
-                grid, path=f"""{Path(__file__).parent}/gen/{idx}.jpg""",
-            )
+            save_image(grid, path=f"{Path(args.save_dir)}/{idx}.jpg")

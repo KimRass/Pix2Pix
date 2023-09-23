@@ -8,7 +8,6 @@ import math
 
 import config
 from model import Generator, Discriminator
-from loss import Pix2PixLoss
 from torch_utils import get_device
 from facades import FacadesDataset
 from googlemaps import GoogleMapsDataset
@@ -20,8 +19,8 @@ def get_args():
 
     parser.add_argument("--dataset", type=str, required=True)
     parser.add_argument("--data_dir", type=str, required=True)
-    parser.add_argument("--n_epochs", type=int, required=True) # "Trained for $200$ epochs."
-    parser.add_argument("--batch_size", type=int, required=True)
+    parser.add_argument("--n_epochs", type=int, required=False, default=200) # "Trained for $200$ epochs."
+    parser.add_argument("--batch_size", type=int, required=False, default=1)
     parser.add_argument("--n_workers", type=int, required=True)
     parser.add_argument("--lamb", type=int, required=False, default=100)
     parser.add_argument("--resume_from", type=str, required=False)
@@ -178,11 +177,12 @@ if __name__ == "__main__":
                 output_img_std=output_img_std,
             )
             save_image(
-                grid, path=f"{Path(__file__).parent}/generated_images/epoch_{epoch}.jpg",
+                grid,
+                path=f"{Path(__file__).parent}/generated_images/{args.dataset}_epoch_{epoch}.jpg",
             )
 
         if accum_tot_loss < best_loss:
-            cur_ckpt_path = f"{Path(__file__).parent}/checkpoints/epoch_{epoch}.pth"
+            cur_ckpt_path = f"{Path(__file__).parent}/checkpoints/{args.dataset}_epoch_{epoch}.pth"
             save_checkpoint(
                 epoch=epoch,
                 disc=disc,

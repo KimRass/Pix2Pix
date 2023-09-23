@@ -21,7 +21,7 @@ def save_image(img, path):
     _to_pil(img).save(str(path))
 
 
-def batched_image_to_grid(image, n_cols):
+def _batched_image_to_grid(image, n_cols):
     b, _, h, w = image.shape
     assert b % n_cols == 0,\
         "The batch size should be a multiple of `n_cols` argument"
@@ -58,5 +58,5 @@ def images_to_grid(
 
     concat = torch.cat([input_image, real_output_image, fake_output_image], dim=0)
     gen_image = rearrange(concat, pattern="(n m) c h w -> (m n) c h w", n=3)
-    grid = batched_image_to_grid(gen_image, n_cols=3)
+    grid = _batched_image_to_grid(gen_image, n_cols=3)
     return grid
