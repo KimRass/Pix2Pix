@@ -96,7 +96,8 @@ if __name__ == "__main__":
         drop_last=True,
     )
 
-    crit = Pix2PixLoss()
+    cgan_crit = nn.BCELoss()
+    l1_crit = nn.L1Loss()
 
     ### Resume
     if args.resume_from is not None:
@@ -109,46 +110,62 @@ if __name__ == "__main__":
         prev_ckpt_path = args.resume_from
         init_epoch = ckpt["epoch"]
         print(f"Resume from checkpoint '{args.resume_from}'.")
-        print(f"Best loss ever: {best_loss:.2f}")
+        print(f"Best loss ever: {best_loss:.4f}")
     else:
         best_loss = math.inf
         prev_ckpt_path = ".pth"
         init_epoch = 0
 
     for epoch in range(init_epoch + 1, args.n_epochs + 1):
-        accum_cgan_loss = 0
+        accum_disc_loss = 0
+        accum_fake_gen_loss = 0
         accum_l1_loss = 0
         accum_tot_loss = 0
         for step, (input_image, real_output_image) in enumerate(train_dl, start=1):
             input_image = input_image.to(DEVICE)
             real_output_image = real_output_image.to(DEVICE)
 
-            fake_output_image = gen(input_image)
+            ### Train D.
             real_pred = disc(input_image=input_image, output_image=real_output_image)
-            fake_pred = disc(input_image=input_image, output_image=fake_output_image)
-            
-            cgan_loss, l1_loss = crit(
-                real_output_image=real_output_image,
-                fake_output_image=fake_output_image,
-                real_pred=real_pred,
-                fake_pred=fake_pred,
-            )
-            tot_loss = cgan_loss + args.lamb * l1_loss
+            real_disc_loss = cgan_crit(
+                real_pred, torch.ones_like(real_pred, device=real_pred.device),
+            ) # "$\mathbb{E}_{x, y}[\log D(x, y)]$"
 
+            fake_output_image = gen(input_image)
+            fake_pred = disc(input_image=input_image, output_image=fake_output_image.detach())
+            fake_disc_loss = cgan_crit(
+                fake_pred, torch.zeros_like(fake_pred, device=real_pred.device),
+            ) # "$\mathbb{E}_{x, z}[\log(1 − D(x, G(x, z)))]$"
+
+            disc_loss = (real_disc_loss + fake_disc_loss) / 2 # "$\mathcal{L}_{cGAN}(G, D)$"
             disc_optim.zero_grad()
-            gen_optim.zero_grad()
-            tot_loss.backward()
+            disc_loss.backward()
             disc_optim.step()
+
+            ### Train G.
+            fake_output_image = gen(input_image)
+            fake_pred = disc(input_image=input_image, output_image=fake_output_image)
+            fake_gen_loss = cgan_crit(
+                fake_pred, torch.ones_like(fake_pred, device=real_pred.device),
+            ) # Not in the paper
+
+            # "$\mathcal{L}_{L1}(G) = \mathbb{E}_{x, y, z}[\lVert y - G(x, z) \rVert_{1}]$"
+            l1_loss = l1_crit(fake_output_image, real_output_image)
+
+            gen_loss = fake_gen_loss + args.lamb * l1_loss
+            gen_optim.zero_grad()
+            gen_loss.backward()
             gen_optim.step()
 
-            accum_cgan_loss += cgan_loss.item()
+            accum_disc_loss += disc_loss.item()
+            accum_fake_gen_loss += fake_gen_loss.item()
             accum_l1_loss += l1_loss.item()
-            accum_tot_loss += tot_loss.item()
+            accum_tot_loss += disc_loss.item() + gen_loss.item()
 
         print(f"[ {epoch}/{str(args.n_epochs)} ][ {step}/{len(train_dl)} ]", end="")
-        print(f"[ cGAN loss: {accum_cgan_loss / len(train_dl): .4f} ]", end="")
-        print(f"[ L1 loss: {accum_l1_loss / len(train_dl): .4f} ]", end="")
-        print(f"[ Total loss: {accum_tot_loss / len(train_dl): .2f} ]")
+        print(f"[ D loss: {accum_disc_loss / len(train_dl): .4f} ]", end="")
+        print(f"[ G cGAN loss: {accum_fake_gen_loss / len(train_dl): .4f} ]", end="")
+        print(f"[ L1 loss: {accum_l1_loss / len(train_dl): .4f} ]")
 
         if epoch % config.N_GEN_EPOCHS == 0:
             grid = images_to_grid(
@@ -172,7 +189,7 @@ if __name__ == "__main__":
                 gen=gen,
                 disc_optim=disc_optim,
                 gen_optim=gen_optim,
-                loss=accum_tot_loss,
+                loss=accum_fake_gen_loss,
                 save_path=cur_ckpt_path,
             )
             Path(prev_ckpt_path).unlink(missing_ok=True)
