@@ -1,6 +1,6 @@
 # Source: https://github.com/junyanz/pytorch-CycleGAN-and-pix2pix/tree/master
 
-# "results. For map$aerial photo, we trained on 256 256 resolution images, but exploited fully-convolutional translation (described above) to test on 512   512 images, which were then downsampled and presented to Turkers at 256   256 resolution."
+# "For map$aerial photo, we trained on 256 256 resolution images, but exploited fully-convolutional translation (described above) to test on 512   512 images, which were then downsampled and presented to Turkers at 256   256 resolution."
 
 
 import torchvision.transforms as T
@@ -37,18 +37,11 @@ class GoogleMapsDataset(FacadesDataset):
         self.output_img_std = output_img_std
         self.split = split
 
-        # self.color_jitter = T.RandomApply(
-        #     [T.ColorJitter(brightness=0.3, contrast=0.3, saturation=0.3)],
-        #     p=0.5,
-        # )
-
     def transform(self, input_image, output_image):
         if self.split == "train":
             t, l, h, w = T.RandomCrop.get_params(input_image, output_size=(256, 256))
             input_image = TF.crop(input_image, top=t, left=l, height=h, width=w)
             output_image = TF.crop(output_image, top=t, left=l, height=h, width=w)
-
-            # output_image = self.color_jitter(output_image)
 
             angle = random.randint(0, 3) * 90
             input_image = TF.rotate(input_image, angle=angle)

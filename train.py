@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 from torch.optim import Adam
+from torch.cuda.amp import GradScaler
 from pathlib import Path
 import argparse
 import math
@@ -10,7 +11,7 @@ import config
 from model import Generator, Discriminator
 from torch_utils import get_device
 from facades import FacadesDataset
-from googlemaps import GoogleMapsDataset
+from google_maps import GoogleMapsDataset
 from image_utils import save_image, images_to_grid
 
 
@@ -29,7 +30,7 @@ def get_args():
     return args
 
 
-def save_checkpoint(epoch, disc, gen, disc_optim, gen_optim, loss, save_path):
+def save_checkpoint(epoch, disc, gen, disc_optim, gen_optim, scaler, loss, save_path):
     Path(save_path).parent.mkdir(parents=True, exist_ok=True)
     ckpt = {
         "epoch": epoch,
@@ -37,6 +38,7 @@ def save_checkpoint(epoch, disc, gen, disc_optim, gen_optim, loss, save_path):
         "D": disc.state_dict(),
         "D_optimizer": disc_optim.state_dict(),
         "G_optimizer": gen_optim.state_dict(),
+        "scaler": scaler.state_dict(),
         "loss": loss,
     }
     torch.save(ckpt, str(save_path))
@@ -59,6 +61,8 @@ def select_ds(args):
 
 
 if __name__ == "__main__":
+    PARENT_DIR = Path(__file__).parent
+
     args = get_args()
 
     # 논문에서는 batch size를 1로 했는데, 그보다 큰 값으로 할 경우 Batch size를 제곱한 값에 비례하여
@@ -76,6 +80,8 @@ if __name__ == "__main__":
     gen_optim = Adam(
         params=gen.parameters(), lr=lr, betas=(config.BETA1, config.BETA2),
     )
+
+    scaler = GradScaler()
 
     ds, input_img_mean, input_img_std, output_img_mean, output_img_std = select_ds(args)
     train_ds = ds(
@@ -125,36 +131,39 @@ if __name__ == "__main__":
             real_output_image = real_output_image.to(DEVICE)
 
             ### Train D.
-            real_pred = disc(input_image=input_image, output_image=real_output_image)
-            real_disc_loss = cgan_crit(
-                real_pred, torch.ones_like(real_pred, device=real_pred.device),
-            ) # "$\mathbb{E}_{x, y}[\log D(x, y)]$"
+            with torch.autocast(device_type=DEVICE.type, dtype=torch.float16, enabled=True):
+                real_pred = disc(input_image=input_image, output_image=real_output_image)
+                real_disc_loss = cgan_crit(
+                    real_pred, torch.ones_like(real_pred, device=real_pred.device),
+                ) # "$\mathbb{E}_{x, y}[\log D(x, y)]$"
 
-            fake_output_image = gen(input_image)
-            fake_pred = disc(input_image=input_image, output_image=fake_output_image.detach())
-            fake_disc_loss = cgan_crit(
-                fake_pred, torch.zeros_like(fake_pred, device=real_pred.device),
-            ) # "$\mathbb{E}_{x, z}[\log(1 − D(x, G(x, z)))]$"
+                fake_output_image = gen(input_image)
+                fake_pred = disc(input_image=input_image, output_image=fake_output_image.detach())
+                fake_disc_loss = cgan_crit(
+                    fake_pred, torch.zeros_like(fake_pred, device=real_pred.device),
+                ) # "$\mathbb{E}_{x, z}[\log(1 − D(x, G(x, z)))]$"
 
-            disc_loss = (real_disc_loss + fake_disc_loss) / 2 # "$\mathcal{L}_{cGAN}(G, D)$"
+                disc_loss = (real_disc_loss + fake_disc_loss) / 2 # "$\mathcal{L}_{cGAN}(G, D)$"
             disc_optim.zero_grad()
-            disc_loss.backward()
-            disc_optim.step()
+            scaler.scale(disc_loss).backward()
+            scaler.step(disc_optim)
 
             ### Train G.
-            fake_output_image = gen(input_image)
-            fake_pred = disc(input_image=input_image, output_image=fake_output_image)
-            fake_gen_loss = cgan_crit(
-                fake_pred, torch.ones_like(fake_pred, device=real_pred.device),
-            ) # Not in the paper
+            with torch.autocast(device_type=DEVICE.type, dtype=torch.float16, enabled=True):
+                fake_output_image = gen(input_image)
+                fake_pred = disc(input_image=input_image, output_image=fake_output_image)
+                fake_gen_loss = cgan_crit(
+                    fake_pred, torch.ones_like(fake_pred, device=real_pred.device),
+                )
 
-            # "$\mathcal{L}_{L1}(G) = \mathbb{E}_{x, y, z}[\lVert y - G(x, z) \rVert_{1}]$"
-            l1_loss = l1_crit(fake_output_image, real_output_image)
-
-            gen_loss = fake_gen_loss + args.lamb * l1_loss
+                # "$\mathcal{L}_{L1}(G) = \mathbb{E}_{x, y, z}[\lVert y - G(x, z) \rVert_{1}]$"
+                l1_loss = l1_crit(fake_output_image, real_output_image)
+                gen_loss = fake_gen_loss + args.lamb * l1_loss
             gen_optim.zero_grad()
-            gen_loss.backward()
-            gen_optim.step()
+            scaler.scale(gen_loss).backward()
+            scaler.step(gen_optim)
+
+            scaler.update()
 
             accum_disc_loss += disc_loss.item()
             accum_fake_gen_loss += fake_gen_loss.item()
@@ -178,18 +187,19 @@ if __name__ == "__main__":
             )
             save_image(
                 grid,
-                path=f"{Path(__file__).parent}/generated_images/{args.dataset}_epoch_{epoch}.jpg",
+                path=f"{PARENT_DIR}/generated_images/{args.dataset}_epoch_{epoch}.jpg",
             )
 
         if accum_tot_loss < best_loss:
-            cur_ckpt_path = f"{Path(__file__).parent}/checkpoints/{args.dataset}_epoch_{epoch}.pth"
+            cur_ckpt_path = f"{PARENT_DIR}/checkpoints/{args.dataset}_epoch_{epoch}.pth"
             save_checkpoint(
                 epoch=epoch,
                 disc=disc,
                 gen=gen,
                 disc_optim=disc_optim,
                 gen_optim=gen_optim,
-                loss=accum_fake_gen_loss,
+                scaler=scaler,
+                loss=accum_tot_loss,
                 save_path=cur_ckpt_path,
             )
             Path(prev_ckpt_path).unlink(missing_ok=True)
