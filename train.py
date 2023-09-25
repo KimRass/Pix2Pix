@@ -187,11 +187,11 @@ if __name__ == "__main__":
             )
             save_image(
                 grid,
-                path=f"{PARENT_DIR}/generated_images/{args.dataset}_epoch_{epoch}.jpg",
+                path=f"{PARENT_DIR}/generated_images/{args.dataset}/epoch_{epoch}.jpg",
             )
 
         if accum_tot_loss < best_loss:
-            cur_ckpt_path = f"{PARENT_DIR}/checkpoints/{args.dataset}_epoch_{epoch}.pth"
+            cur_ckpt_path = f"{PARENT_DIR}/checkpoints/{args.dataset}/epoch_{epoch}.pth"
             save_checkpoint(
                 epoch=epoch,
                 disc=disc,
