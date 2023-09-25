@@ -176,9 +176,9 @@ if __name__ == "__main__":
             accum_tot_loss += disc_loss.item() + gen_loss.item()
 
         print(f"[ {epoch}/{str(args.n_epochs)} ][ {step}/{len(train_dl)} ]", end="")
-        print(f"[ D loss: {accum_disc_loss / len(train_dl): .4f} ]", end="")
-        print(f"[ G cGAN loss: {accum_fake_gen_loss / len(train_dl): .4f} ]", end="")
-        print(f"[ L1 loss: {accum_l1_loss / len(train_dl): .4f} ]")
+        print(f"[ D loss: {accum_disc_loss / len(train_dl):.4f} ]", end="")
+        print(f"[ G cGAN loss: {accum_fake_gen_loss / len(train_dl):.4f} ]", end="")
+        print(f"[ L1 loss: {accum_l1_loss / len(train_dl):.4f} ]")
 
         cur_ckpt_path = f"{PARENT_DIR}/checkpoints/{args.dataset}_epoch_{epoch}.pth"
         save_checkpoint(
