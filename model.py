@@ -33,11 +33,21 @@ class ConvBlock(nn.Module):
 
         if not upsample:
             self.conv = nn.Conv2d(
-                in_channels, out_channels, kernel_size=4, stride=stride, padding=1, bias=False,
+                in_channels,
+                out_channels,
+                kernel_size=4,
+                stride=stride,
+                padding=1,
+                bias=False if normalize else True,
             )
         else:
             self.conv = nn.ConvTranspose2d(
-                in_channels, out_channels, kernel_size=4, stride=stride, padding=1, bias=False
+                in_channels,
+                out_channels,
+                kernel_size=4,
+                stride=stride,
+                padding=1,
+                bias=False if normalize else True,
             )
         if normalize:
             # "At inference time, we run the generator net in exactly the same manner as during
@@ -46,7 +56,7 @@ class ConvBlock(nn.Module):
             # rather than aggregated statistics of the training batch. This approach to batch
             # normalization, when the batch size is set to $1$, has been termed 'instance normalization'
             # and has been demonstrated to be effective at image generation tasks."
-            self.norm = nn.InstanceNorm2d(out_channels, affine=True, track_running_stats=False)
+            self.norm = nn.InstanceNorm2d(out_channels, affine=False, track_running_stats=False)
         if drop:
             self.dropout = nn.Dropout(0.5)
 
@@ -66,7 +76,7 @@ class ConvBlock(nn.Module):
 # "Weights were initialized from a Gaussian distribution with mean $0$ and standard deviation $0.02$."
 def _init_weights(model):
     for m in model.modules():
-        if isinstance(m, (nn.Conv2d, nn.ConvTranspose2d, nn.InstanceNorm2d)):
+        if isinstance(m, (nn.Conv2d, nn.ConvTranspose2d)):
             m.weight.data.normal_(0, 0.02)
 
 
