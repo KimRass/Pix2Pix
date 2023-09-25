@@ -101,7 +101,7 @@ if __name__ == "__main__":
         drop_last=True,
     )
 
-    cgan_crit = nn.BCELoss()
+    cgan_crit = nn.BCEWithLogitsLoss()
     l1_crit = nn.L1Loss()
 
     ### Resume
@@ -191,7 +191,7 @@ if __name__ == "__main__":
             )
 
         if accum_tot_loss < best_loss:
-            cur_ckpt_path = f"{PARENT_DIR}/checkpoints/{args.dataset}/epoch_{epoch}.pth"
+            cur_ckpt_path = f"{PARENT_DIR}/checkpoints/{args.dataset}_epoch_{epoch}.pth"
             save_checkpoint(
                 epoch=epoch,
                 disc=disc,

@@ -170,7 +170,6 @@ class Discriminator(nn.Module): # "$70 \times 70$ 'PatchhGAN'"
         x = self.layer3(x) # `(b, 256, 32, 32)`
         x = self.layer4(x) # `(b, 512, 31, 31)`
         x = self.layer5(x) # `(b, 1, 31, 31)`
-        x = torch.sigmoid(x)
         # "We run the discriminator convolutionally across the image, averaging all responses
         # to provide the ultimate output of $D$."
         x = x.mean(dim=(2, 3))
