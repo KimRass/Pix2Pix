@@ -44,6 +44,11 @@ def save_checkpoint(epoch, disc, gen, disc_optim, gen_optim, scaler, loss, save_
     torch.save(ckpt, str(save_path))
 
 
+def save_gen(gen, save_path):
+    Path(save_path).parent.mkdir(parents=True, exist_ok=True)
+    torch.save(gen.state_dict(), str(save_path))
+
+
 def select_ds(args):
     if args.dataset == "facades":
         ds = FacadesDataset
@@ -175,6 +180,20 @@ if __name__ == "__main__":
         print(f"[ G cGAN loss: {accum_fake_gen_loss / len(train_dl): .4f} ]", end="")
         print(f"[ L1 loss: {accum_l1_loss / len(train_dl): .4f} ]")
 
+        cur_ckpt_path = f"{PARENT_DIR}/checkpoints/{args.dataset}_epoch_{epoch}.pth"
+        save_checkpoint(
+            epoch=epoch,
+            disc=disc,
+            gen=gen,
+            disc_optim=disc_optim,
+            gen_optim=gen_optim,
+            scaler=scaler,
+            loss=accum_tot_loss,
+            save_path=cur_ckpt_path,
+        )
+        Path(prev_ckpt_path).unlink(missing_ok=True)
+        prev_ckpt_path = cur_ckpt_path
+
         if epoch % config.N_GEN_EPOCHS == 0:
             grid = images_to_grid(
                 input_image=input_image,
@@ -189,21 +208,3 @@ if __name__ == "__main__":
                 grid,
                 path=f"{PARENT_DIR}/generated_images/{args.dataset}/epoch_{epoch}.jpg",
             )
-
-        if accum_tot_loss < best_loss:
-            cur_ckpt_path = f"{PARENT_DIR}/checkpoints/{args.dataset}_epoch_{epoch}.pth"
-            save_checkpoint(
-                epoch=epoch,
-                disc=disc,
-                gen=gen,
-                disc_optim=disc_optim,
-                gen_optim=gen_optim,
-                scaler=scaler,
-                loss=accum_tot_loss,
-                save_path=cur_ckpt_path,
-            )
-            Path(prev_ckpt_path).unlink(missing_ok=True)
-            print(f"Saved checkpoint.")
-
-            best_loss = accum_tot_loss
-            prev_ckpt_path = cur_ckpt_path
