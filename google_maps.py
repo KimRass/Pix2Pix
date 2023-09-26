@@ -38,11 +38,11 @@ class GoogleMapsDataset(FacadesDataset):
         self.split = split
 
     def transform(self, input_image, output_image):
-        if self.split == "train":
-            t, l, h, w = T.RandomCrop.get_params(input_image, output_size=(256, 256))
-            input_image = TF.crop(input_image, top=t, left=l, height=h, width=w)
-            output_image = TF.crop(output_image, top=t, left=l, height=h, width=w)
+        t, l, h, w = T.RandomCrop.get_params(input_image, output_size=(256, 256))
+        input_image = TF.crop(input_image, top=t, left=l, height=h, width=w)
+        output_image = TF.crop(output_image, top=t, left=l, height=h, width=w)
 
+        if self.split == "train":
             angle = random.randint(0, 3) * 90
             input_image = TF.rotate(input_image, angle=angle)
             output_image = TF.rotate(output_image, angle=angle)

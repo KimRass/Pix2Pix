@@ -14,10 +14,10 @@ $$\mathcal{L}_{L1}(G) = \mathbb{E}_{x, y, z}[\Vert y - G(x, z) \Vert_{1}]$$
 - [50] [U-Net: Convolutional Networks for Biomedical Image Segmentation](https://arxiv.org/pdf/1505.04597.pdf)
 
 # Pre-trained Models
-- [pix2pix_facades.pth](https://drive.google.com/file/d/1_y0ZvhgsweJmrnO2IIamG0yfMbGkkiEQ/view?usp=sharing)
-
-# Generated Images
-## Facades Dataset Test Set
+## Trained on Facades Dataset
+- [pix2pix_facades.pth](https://drive.google.com/file/d/1sSro8prPTV5MddkFohaiIqdznreAnAyU/view?usp=sharing)
+## Trained on Google Maps Dataset
+- [pix2pix_google_maps.pth](https://drive.google.com/file/d/1MYWzLVG2zWbPGFuzmhNUAOlxLq_tv0aN/view?usp=sharing)
 
 # Researches
 ## Image Mean and Standard Deviation
