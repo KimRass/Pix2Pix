@@ -38,11 +38,11 @@ class GoogleMapsDataset(FacadesDataset):
         self.split = split
 
     def transform(self, input_image, output_image):
-        t, l, h, w = T.RandomCrop.get_params(input_image, output_size=(256, 256))
-        input_image = TF.crop(input_image, top=t, left=l, height=h, width=w)
-        output_image = TF.crop(output_image, top=t, left=l, height=h, width=w)
-
         if self.split == "train":
+            t, l, h, w = T.RandomCrop.get_params(input_image, output_size=(256, 256))
+            input_image = TF.crop(input_image, top=t, left=l, height=h, width=w)
+            output_image = TF.crop(output_image, top=t, left=l, height=h, width=w)
+
             angle = random.randint(0, 3) * 90
             input_image = TF.rotate(input_image, angle=angle)
             output_image = TF.rotate(output_image, angle=angle)
@@ -50,6 +50,9 @@ class GoogleMapsDataset(FacadesDataset):
             if random.random() > 0.5:
                 input_image = TF.hflip(input_image)
                 output_image = TF.hflip(output_image)
+        else:
+            input_image = TF.center_crop(input_image, output_size=(256, 256))
+            output_image = TF.center_crop(output_image, output_size=(256, 256))
 
         input_image = T.ToTensor()(input_image)
         input_image = T.Normalize(

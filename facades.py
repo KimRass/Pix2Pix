@@ -49,6 +49,9 @@ class FacadesDataset(Dataset):
             if p > 0.5:
                 input_image = TF.hflip(input_image)
                 output_image = TF.hflip(output_image)
+        else:
+            input_image = TF.center_crop(input_image, output_size=(256, 256))
+            output_image = TF.center_crop(output_image, output_size=(256, 256))
 
         input_image = T.ToTensor()(input_image)
         input_image = T.Normalize(
