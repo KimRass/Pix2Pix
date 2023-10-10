@@ -1,6 +1,6 @@
 import argparse
 
-from torch_utils import get_device, exclude_other_than_gen
+from torch_utils import get_device, save_gen
 
 
 def get_args():
@@ -17,6 +17,6 @@ if __name__ == "__main__":
     args = get_args()
 
     DEVICE = get_device()
-    exclude_other_than_gen(
+    save_gen(
         old_ckpt_path=args.old_ckpt_path, new_ckpt_path=args.new_ckpt_path, device=DEVICE,
     )
