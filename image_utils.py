@@ -5,7 +5,6 @@ import numpy as np
 from PIL import Image
 from pathlib import Path
 
-import config
 from torch_utils import denorm
 
 
@@ -39,7 +38,7 @@ def _batched_image_to_grid(image, n_cols):
     return grid
 
 
-def images_to_grid(
+def image_to_grid(
     input_image,
     real_output_image,
     fake_output_image,

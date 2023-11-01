@@ -4,10 +4,9 @@ from pathlib import Path
 import argparse
 from tqdm import tqdm
 
-import config
 from model import Generator
 from torch_utils import get_device
-from image_utils import save_image, images_to_grid
+from image_utils import save_image, image_to_grid
 from train import select_ds
 
 
@@ -61,7 +60,7 @@ if __name__ == "__main__":
             real_output_image = real_output_image.to(DEVICE)
 
             gen_output_image = gen(input_image)
-            grid = images_to_grid(
+            grid = image_to_grid(
                 input_image=input_image,
                 real_output_image=real_output_image,
                 fake_output_image=gen_output_image,
