@@ -1,22 +1,17 @@
-# Pix2Pix Implementation in PyTorch from Scratch
+# 'Pix2Pix' (Isola et al., 2017) implementation from scratch in PyTorch
 ## Paper Reading
 - [Image-to-Image Translation with Conditional Adversarial Networks](https://github.com/KimRass/Pix2Pix/blob/main/image_to_mage_translation_with_conditional_adversarial_networks.pdf)
-### References
-- [24] [Generative Adversarial Nets](https://arxiv.org/pdf/1406.2661.pdf)
-- [29] [Batch Normalization: Accelerating Deep Network Training by Reducing Internal Covariate Shift](https://arxiv.org/pdf/1502.03167.pdf)
-- [44] [Unsupervised Representation Learning with Deep Convolutional Generative Adversarial Networks](https://arxiv.org/pdf/1511.06434.pdf)
-- [50] [U-Net: Convolutional Networks for Biomedical Image Segmentation](https://arxiv.org/pdf/1505.04597.pdf)
 ## Pre-trained Models
-### Trained on Facades Dataset for 200 epochs
 - [pix2pix_facades.pth](https://drive.google.com/file/d/1sSro8prPTV5MddkFohaiIqdznreAnAyU/view?usp=sharing)
-### Trained on Google Maps Dataset for 400 epochs
+    - Trained on Facades Dataset for 200 epochs
 - [pix2pix_google_maps.pth](https://drive.google.com/file/d/1_mt4K-0Z2x1DxA0f2om9VaAEFamMfROU/view?usp=sharing)
+    - Trained on Google Maps Dataset for 400 epochs
 ## Generated Images
 - [Test set of Facades dataset](https://github.com/KimRass/pix2pix_from_scratch/blob/main/generated_images/facades_test_set/)
     - <img src="https://github.com/KimRass/Pix2Pix/assets/105417680/9ec992f1-46c6-4c1f-bdb0-6ca728a9a053" width="400">
 - [Test set of Google maps dataset](https://github.com/KimRass/pix2pix_from_scratch/blob/main/generated_images/google_maps_test_set/)
     - <img src="https://github.com/KimRass/Pix2Pix/assets/105417680/46470114-54ec-4652-aac1-1986c4d6cc18" width="400">
-## Researches
+## Implementation Details
 ### Image Mean and Standard Deviation
 - Facades dataset의 train set에 대해 input images와 output images 각각에 대해 mean과 standard deviation을 계산하면 다음과 같습니다.
     ```python
