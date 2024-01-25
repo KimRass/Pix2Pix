@@ -28,11 +28,11 @@ if __name__ == "__main__":
     args = get_args()
 
     DEVICE = get_device()
-    gen = Generator(in_channels=3, out_channels=3).to(DEVICE)
+    G = Generator(in_channels=3, out_channels=3).to(DEVICE)
 
     ### Load pre-trained parameters.
     ckpt = torch.load(args.ckpt_path, map_location=DEVICE)
-    gen.load_state_dict(ckpt)
+    G.load_state_dict(ckpt)
 
     ds, input_img_mean, input_img_std, output_img_mean, output_img_std = select_ds(args)
     test_ds = ds(
@@ -53,17 +53,17 @@ if __name__ == "__main__":
     )
 
     ### Generate images.
-    gen.eval()
+    G.eval()
     with torch.no_grad():
         for idx, (input_image, real_output_image) in enumerate(tqdm(test_dl), start=1):
             input_image = input_image.to(DEVICE)
             real_output_image = real_output_image.to(DEVICE)
 
-            gen_output_image = gen(input_image)
+            output_image = G(input_image)
             grid = image_to_grid(
                 input_image=input_image,
                 real_output_image=real_output_image,
-                fake_output_image=gen_output_image,
+                fake_output_image=output_image,
                 input_img_mean=input_img_mean,
                 input_img_std=input_img_std,
                 output_img_mean=output_img_mean,

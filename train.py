@@ -12,7 +12,7 @@ from model import Generator, Discriminator
 from torch_utils import get_device
 from facades import FacadesDataset
 from google_maps import GoogleMapsDataset
-from image_utils import save_image, images_to_grid
+from image_utils import save_image, image_to_grid
 
 
 def get_args():
@@ -186,7 +186,7 @@ if __name__ == "__main__":
         prev_ckpt_path = cur_ckpt_path
 
         if epoch % config.N_GEN_EPOCHS == 0:
-            grid = images_to_grid(
+            grid = image_to_grid(
                 src_image=src_image,
                 real_trg_image=real_trg_image,
                 fake_trg_image=fake_trg_image,

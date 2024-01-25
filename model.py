@@ -180,9 +180,9 @@ def get_receptive_field(out_channels, kernel_size, stride):
 
 
 if __name__ == "__main__":
-    gen = Generator(in_channels=3, out_channels=3)
+    G = Generator(in_channels=3, out_channels=3)
     x = torch.randn(1, 3, 256, 256)
-    gen(x).shape
+    G(x).shape
 
     rf = 1
     for stride in [1, 1, 2, 2, 2]:
