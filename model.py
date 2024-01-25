@@ -7,7 +7,6 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-
 # Let 'Ck' denote a Convolution-norm-ReLU layer with $k$ filters. 'CDk' denotes a
 # Convolution-normDropout-ReLUlayer with a dropout rate of 50%. All convolutions are $4 \times 4$
 # spatial filters applied with stride $2$. Convolutions in the encoder, and in the discriminator,
@@ -116,6 +115,10 @@ class Generator(nn.Module):
         _init_weights(self)
 
     def forward(self, x):
+        for module in self.modules():
+            if isinstance(module, nn.Dropout):
+                module.train()
+
         x1 = self.layer1(x) # (b, 64, 128, 128)
         x2 = self.layer2(x1) # (b, 128, 64, 64)
         x3 = self.layer3(x2) # (b, 256, 32, 32)
