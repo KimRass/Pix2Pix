@@ -140,10 +140,6 @@ class Generator(nn.Module):
         return x
 
 
-def get_receptive_field(out_channels, kernel_size, stride):
-    return (out_channels - 1) * stride + kernel_size
-
-
 class Discriminator(nn.Module): # "$70 \times 70$ 'PatchhGAN'"
     def __init__(self, in_channels):
         super().__init__()
@@ -179,17 +175,19 @@ class Discriminator(nn.Module): # "$70 \times 70$ 'PatchhGAN'"
         return x
 
 
+def get_receptive_field(out_channels, kernel_size, stride):
+    return (out_channels - 1) * stride + kernel_size
+
+
 if __name__ == "__main__":
     gen = Generator(in_channels=3, out_channels=3)
     x = torch.randn(1, 3, 256, 256)
     gen(x).shape
 
-    rf = get_receptive_field(out_channels=1, kernel_size=4, stride=1)
-    rf = get_receptive_field(out_channels=rf, kernel_size=4, stride=1)
-    rf = get_receptive_field(out_channels=rf, kernel_size=4, stride=2)
-    rf = get_receptive_field(out_channels=rf, kernel_size=4, stride=2)
-    rf = get_receptive_field(out_channels=rf, kernel_size=4, stride=2)
-    print(rf) # `70`
+    rf = 1
+    for stride in [1, 1, 2, 2, 2]:
+        rf = get_receptive_field(out_channels=rf, kernel_size=4, stride=stride)
+        print(rf)
 
     disc = Discriminator(in_channels=6)
     x = y = torch.randn(4, 3, 256, 256)

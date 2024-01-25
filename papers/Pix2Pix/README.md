@@ -23,6 +23,7 @@ $$G: x \rightarrow y$$
 - Image-to-image translation task에서는 쌍을 이루는 두 이미지가 low-level features를 서로 공유하는 경우가 많으므로 이 Features를 $G$의 입력에서 출력으로 바로 전달하는 것이 바람직합니다. 따라서 Skip connection을 사용한 U-Net architecture를 사용합니다.
 ## (3.2.2) Markovian Discriminator (PatchGAN)
 - L1 loss와 L2 loss는 Blurry 이미지를 생성하도롥 함이 알려져 있습니다. 이 말은 이 두 Loss functions가 High-level이 아닌 Low-level features만을 캡쳐함을 의미합니다. 따라서 $D$가 High-level features를 캡쳐하도록만 강제하면 되는데, 이를 위해서는 $D$가 Local image patches의 구조에만 집중하도록 하면 됩니다. PatchGAN은 각각의 Patches가 진짜인지 가짜인지만을 분류하고자 작동합니다.
+- Comment: Receptive field 4 → 7 → 16 → 34 → 70
 ## 3.3) Optimization and Inference
 - $D$를 업데이트할 때 $D$의 Loss를 2로 나누어 $D$가 학습하는 속도를 늦춥니다.
 - 예측 시에도 $G$에 Dropout를 적용합니다.
