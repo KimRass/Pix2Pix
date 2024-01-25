@@ -114,12 +114,12 @@ class Generator(nn.Module):
 
         _init_weights(self)
 
-    def forward(self, x):
+    def forward(self, src_image):
         for module in self.modules():
             if isinstance(module, nn.Dropout):
                 module.train()
 
-        x1 = self.layer1(x) # (b, 64, 128, 128)
+        x1 = self.layer1(src_image) # (b, 64, 128, 128)
         x2 = self.layer2(x1) # (b, 128, 64, 64)
         x3 = self.layer3(x2) # (b, 256, 32, 32)
         x4 = self.layer4(x3) # (b, 512, 16, 16)
@@ -165,8 +165,8 @@ class Discriminator(nn.Module): # "$70 \times 70$ 'PatchhGAN'"
 
         _init_weights(self)
 
-    def forward(self, input_image, output_image):
-        x = torch.cat([input_image, output_image], dim=1)
+    def forward(self, src_image, trg_image):
+        x = torch.cat([src_image, trg_image], dim=1)
 
         x = self.layer1(x) # (b, 64, 128, 128)
         x = self.layer2(x) # (b, 128, 64, 64)

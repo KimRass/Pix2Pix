@@ -30,23 +30,23 @@ def get_args():
     return args
 
 
-def save_checkpoint(epoch, disc, gen, disc_optim, gen_optim, scaler, loss, save_path):
+def save_checkpoint(epoch, D, G, D_optim, G_optim, scaler, loss, save_path):
     Path(save_path).parent.mkdir(parents=True, exist_ok=True)
     ckpt = {
         "epoch": epoch,
-        "G": gen.state_dict(),
-        "D": disc.state_dict(),
-        "D_optimizer": disc_optim.state_dict(),
-        "G_optimizer": gen_optim.state_dict(),
+        "G": G.state_dict(),
+        "D": D.state_dict(),
+        "D_optimizer": D_optim.state_dict(),
+        "G_optimizer": G_optim.state_dict(),
         "scaler": scaler.state_dict(),
         "loss": loss,
     }
     torch.save(ckpt, str(save_path))
 
 
-def save_gen(gen, save_path):
+def save_G(G, save_path):
     Path(save_path).parent.mkdir(parents=True, exist_ok=True)
-    torch.save(gen.state_dict(), str(save_path))
+    torch.save(G.state_dict(), str(save_path))
 
 
 def select_ds(args):
@@ -76,14 +76,14 @@ if __name__ == "__main__":
     print(f"Learning rate: {lr}")
 
     DEVICE = get_device()
-    gen = Generator(in_channels=3, out_channels=3).to(DEVICE)
-    disc = Discriminator(in_channels=6).to(DEVICE)
+    G = Generator(in_channels=3, out_channels=3).to(DEVICE)
+    D = Discriminator(in_channels=6).to(DEVICE)
 
-    disc_optim = Adam(
-        params=disc.parameters(), lr=lr, betas=(config.BETA1, config.BETA2),
+    D_optim = Adam(
+        params=D.parameters(), lr=lr, betas=(config.BETA1, config.BETA2),
     )
-    gen_optim = Adam(
-        params=gen.parameters(), lr=lr, betas=(config.BETA1, config.BETA2),
+    G_optim = Adam(
+        params=G.parameters(), lr=lr, betas=(config.BETA1, config.BETA2),
     )
 
     scaler = GradScaler()
@@ -112,10 +112,10 @@ if __name__ == "__main__":
     ### Resume
     if args.resume_from is not None:
         ckpt = torch.load(args.resume_from, map_location=DEVICE)
-        disc.load_state_dict(ckpt["D"])
-        gen.load_state_dict(ckpt["G"])
-        disc_optim.load_state_dict(ckpt["D_optimizer"])
-        gen_optim.load_state_dict(ckpt["G_optimizer"])
+        D.load_state_dict(ckpt["D"])
+        G.load_state_dict(ckpt["G"])
+        D_optim.load_state_dict(ckpt["D_optimizer"])
+        G_optim.load_state_dict(ckpt["G_optimizer"])
         best_loss = ckpt["loss"]
         prev_ckpt_path = args.resume_from
         init_epoch = ckpt["epoch"]
@@ -127,69 +127,69 @@ if __name__ == "__main__":
         init_epoch = 0
 
     for epoch in range(init_epoch + 1, args.n_epochs + 1):
-        accum_disc_loss = 0
-        accum_fake_gen_loss = 0
+        accum_D_loss = 0
+        accum_fake_G_loss = 0
         accum_l1_loss = 0
         accum_tot_loss = 0
-        for step, (input_image, real_output_image) in enumerate(train_dl, start=1):
-            input_image = input_image.to(DEVICE)
-            real_output_image = real_output_image.to(DEVICE)
+        for step, (src_image, real_trg_image) in enumerate(train_dl, start=1):
+            src_image = src_image.to(DEVICE)
+            real_trg_image = real_trg_image.to(DEVICE)
 
             ### Train D.
             with torch.autocast(device_type=DEVICE.type, dtype=torch.float16, enabled=True):
-                real_pred = disc(input_image=input_image, output_image=real_output_image)
-                real_disc_loss = cgan_crit(
+                real_pred = D(src_image=src_image, trg_image=real_trg_image)
+                real_D_loss = cgan_crit(
                     real_pred, torch.ones_like(real_pred, device=real_pred.device),
                 ) # "$\mathbb{E}_{x, y}[\log D(x, y)]$"
 
-                fake_output_image = gen(input_image)
-                fake_pred = disc(input_image=input_image, output_image=fake_output_image.detach())
-                fake_disc_loss = cgan_crit(
+                fake_trg_image = G(src_image)
+                fake_pred = D(src_image=src_image, trg_image=fake_trg_image.detach())
+                fake_D_loss = cgan_crit(
                     fake_pred, torch.zeros_like(fake_pred, device=real_pred.device),
                 ) # "$\mathbb{E}_{x, z}[\log(1 − D(x, G(x, z)))]$"
 
-                disc_loss = (real_disc_loss + fake_disc_loss) / 2 # "$\mathcal{L}_{cGAN}(G, D)$"
-            disc_optim.zero_grad()
-            scaler.scale(disc_loss).backward()
-            scaler.step(disc_optim)
+                D_loss = (real_D_loss + fake_D_loss) / 2 # "$\mathcal{L}_{cGAN}(G, D)$"
+            D_optim.zero_grad()
+            scaler.scale(D_loss).backward()
+            scaler.step(D_optim)
 
             ### Train G.
             with torch.autocast(device_type=DEVICE.type, dtype=torch.float16, enabled=True):
-                fake_output_image = gen(input_image)
-                fake_pred = disc(input_image=input_image, output_image=fake_output_image)
-                fake_gen_loss = cgan_crit(
+                fake_trg_image = G(src_image)
+                fake_pred = D(src_image=src_image, trg_image=fake_trg_image)
+                fake_G_loss = cgan_crit(
                     fake_pred, torch.ones_like(fake_pred, device=real_pred.device),
                 )
 
                 # "$\mathcal{L}_{L1}(G) = \mathbb{E}_{x, y, z}[\lVert y - G(x, z) \rVert_{1}]$"
-                l1_loss = l1_crit(fake_output_image, real_output_image)
-                gen_loss = fake_gen_loss + args.lamb * l1_loss
-            gen_optim.zero_grad()
-            scaler.scale(gen_loss).backward()
-            scaler.step(gen_optim)
+                l1_loss = l1_crit(fake_trg_image, real_trg_image)
+                G_loss = fake_G_loss + args.lamb * l1_loss
+            G_optim.zero_grad()
+            scaler.scale(G_loss).backward()
+            scaler.step(G_optim)
 
             scaler.update()
 
-            accum_disc_loss += disc_loss.item()
-            accum_fake_gen_loss += fake_gen_loss.item()
+            accum_D_loss += D_loss.item()
+            accum_fake_G_loss += fake_G_loss.item()
             accum_l1_loss += l1_loss.item()
-            accum_tot_loss += disc_loss.item() + gen_loss.item()
+            accum_tot_loss += D_loss.item() + G_loss.item()
 
         print(f"[ {epoch}/{str(args.n_epochs)} ][ {step}/{len(train_dl)} ]", end="")
-        print(f"[ D loss: {accum_disc_loss / len(train_dl):.4f} ]", end="")
-        print(f"[ G cGAN loss: {accum_fake_gen_loss / len(train_dl):.4f} ]", end="")
+        print(f"[ D loss: {accum_D_loss / len(train_dl):.4f} ]", end="")
+        print(f"[ G cGAN loss: {accum_fake_G_loss / len(train_dl):.4f} ]", end="")
         print(f"[ L1 loss: {accum_l1_loss / len(train_dl):.4f} ]")
 
         cur_ckpt_path = f"{PARENT_DIR}/pretrained/{args.dataset}_epoch_{epoch}.pth"
-        save_gen(gen=gen, save_path=cur_ckpt_path)
+        save_G(G=G, save_path=cur_ckpt_path)
         Path(prev_ckpt_path).unlink(missing_ok=True)
         prev_ckpt_path = cur_ckpt_path
 
         if epoch % config.N_GEN_EPOCHS == 0:
             grid = images_to_grid(
-                input_image=input_image,
-                real_output_image=real_output_image,
-                fake_output_image=fake_output_image,
+                src_image=src_image,
+                real_trg_image=real_trg_image,
+                fake_trg_image=fake_trg_image,
                 input_img_mean=input_img_mean,
                 input_img_std=input_img_std,
                 output_img_mean=output_img_mean,
@@ -197,5 +197,5 @@ if __name__ == "__main__":
             )
             save_image(
                 grid,
-                path=f"{PARENT_DIR}/generated_images/{args.dataset}/epoch_{epoch}.jpg",
+                path=f"{PARENT_DIR}/Gerated_images/{args.dataset}/epoch_{epoch}.jpg",
             )

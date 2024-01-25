@@ -46,3 +46,17 @@ $$G: x \rightarrow y$$
     - 두 가지 Losses를 모두 사용 시 Artifacts가 사라집니다.
 - For Cityscapes dataset:
     - $D$에게 $G$ 생성한 이미지만을 입력하고 $G$가 입력으로 받은 이미지는 입력하지 않은 경우, $D$는 $G$의 실제와 같은지만을 판단하게 되므로 입력에 관계 없이 $G$는 실제처럼 보이는 하나의 이미지만을 생성했습니다 (Mode colapse).
+- Colorfuless
+    - cGANs의 경우 $G$가 Source image에 없는 공간적인 구조까지도 생성하는 Hallucination이 발생합니다.
+    - L1 loss는 $G$가 평균적이고 무채색에 가까운 이미지를 생성하도록 하고 cGANs loss는 Ground truth에 가까운 이미지를 생성하도록 합니다.
+## 4.3) Analysis of the generator architecture
+- Skip connection을 사용한 $G$가 좀 더 사실적인 이미지를 생성합니다.
+## 4.4) FromPixelGANs to PatchGANs to ImageGANs
+- 1 × 1 'PixelGAN': Blurry하며 Colorful합니다.
+- 16 × 16 PatchGAN: Tiling artifacts가 발생합니다.
+- 286 × 286 'ImageGAN':
+    - 정성적으로 볼 때도 70 × 70 PatchGAN보다 나은 점이 없으며 정량적으로도 성능이 낮습니다.
+    - Parameters의 수도 많고 Architecture가 더 깊으므로 학습시키기 어렵기 때문으로 추정합니다.
+- $D$는 PatchGAN이므로 그리고 $G$는 Fully-convolutional이므로 어떤 해상도의 이미지에도 적용 가능합니다.
+## 4.5) Perceptual Validation
+- Map → Aerial photograph의 경우보다 Aerial photograph → Map의 경우에 $G$가 생성한 이미지를 평가자들이 더 적은 횟수로 진짜라고 생각했습니다. Map 이미지가 직선 등 기하하적인 시각 요소가 더 두드러지게 보여 평가자들이 판단을 내리기 더 쉬웠을 것으로 추정합니다.
